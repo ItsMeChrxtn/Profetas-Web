@@ -6,6 +6,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { env, isProduction } from './config/env.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
+import { authRouter } from './routes/auth.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -28,8 +29,8 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Profetas Farm API is running.' });
 });
 
-// Feature routers are mounted here as each phase adds them, e.g.:
-// app.use('/api/auth', authRouter);
+app.use('/api/auth', authRouter);
+// Further feature routers are mounted here as each phase adds them.
 
 if (isProduction) {
   const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
