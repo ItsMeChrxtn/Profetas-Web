@@ -1,0 +1,13 @@
+node_modules/
+server/.env
+client/.env
+client/dist/
+server/uploads/products/*
+server/uploads/education/*
+server/uploads/receipts/*
+!server/uploads/products/.gitkeep
+!server/uploads/education/.gitkeep
+!server/uploads/receipts/.gitkeep
+.DS_Store
+*.log
+npm-debug.log*

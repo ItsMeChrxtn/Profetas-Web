@@ -1,0 +1,6 @@
+# Uploaded files here are validated to be images only (see checkout.php's
+# mime_content_type() check), but this is defense-in-depth: even if a
+# disguised file slipped through, Apache won't execute it as a script.
+<FilesMatch "\.(php|phtml|php\d|phar)$">
+    Require all denied
+</FilesMatch>
