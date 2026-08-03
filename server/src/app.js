@@ -11,6 +11,11 @@ import { productsRouter } from './routes/products.routes.js';
 import { cartRouter } from './routes/cart.routes.js';
 import { ordersRouter } from './routes/orders.routes.js';
 import { adminProductsRouter } from './routes/admin/products.routes.js';
+import { wholesaleRouter } from './routes/wholesale.routes.js';
+import { farmVisitsRouter } from './routes/farmVisits.routes.js';
+import { educationRouter } from './routes/education.routes.js';
+import { loyaltyRouter } from './routes/loyalty.routes.js';
+import { settingsRouter } from './routes/settings.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,6 +43,11 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/admin/products', adminProductsRouter);
+app.use('/api/wholesale-inquiries', wholesaleRouter);
+app.use('/api/farm-visits', farmVisitsRouter);
+app.use('/api/education-posts', educationRouter);
+app.use('/api/loyalty', loyaltyRouter);
+app.use('/api/settings', settingsRouter);
 // Further feature routers are mounted here as each phase adds them.
 
 if (isProduction) {
