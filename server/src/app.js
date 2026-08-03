@@ -16,6 +16,16 @@ import { farmVisitsRouter } from './routes/farmVisits.routes.js';
 import { educationRouter } from './routes/education.routes.js';
 import { loyaltyRouter } from './routes/loyalty.routes.js';
 import { settingsRouter } from './routes/settings.routes.js';
+import { adminOrdersRouter } from './routes/admin/orders.routes.js';
+import { adminPaymentsRouter } from './routes/admin/payments.routes.js';
+import { adminCustomersRouter } from './routes/admin/customers.routes.js';
+import { adminDashboardRouter } from './routes/admin/dashboard.routes.js';
+import { adminInventoryRouter } from './routes/admin/inventory.routes.js';
+import { adminReportsRouter } from './routes/admin/reports.routes.js';
+import { adminSettingsRouter } from './routes/admin/settings.routes.js';
+import { adminEducationRouter } from './routes/admin/education.routes.js';
+import { adminFarmVisitsRouter } from './routes/admin/farmVisits.routes.js';
+import { adminWholesaleRouter } from './routes/admin/wholesale.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,7 +58,16 @@ app.use('/api/farm-visits', farmVisitsRouter);
 app.use('/api/education-posts', educationRouter);
 app.use('/api/loyalty', loyaltyRouter);
 app.use('/api/settings', settingsRouter);
-// Further feature routers are mounted here as each phase adds them.
+app.use('/api/admin/orders', adminOrdersRouter);
+app.use('/api/admin/payments', adminPaymentsRouter);
+app.use('/api/admin/customers', adminCustomersRouter);
+app.use('/api/admin/dashboard', adminDashboardRouter);
+app.use('/api/admin/inventory', adminInventoryRouter);
+app.use('/api/admin/reports', adminReportsRouter);
+app.use('/api/admin/settings', adminSettingsRouter);
+app.use('/api/admin/education-posts', adminEducationRouter);
+app.use('/api/admin/farm-visits', adminFarmVisitsRouter);
+app.use('/api/admin/wholesale-inquiries', adminWholesaleRouter);
 
 if (isProduction) {
   const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
