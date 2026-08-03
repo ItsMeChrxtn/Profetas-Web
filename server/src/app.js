@@ -7,6 +7,10 @@ import morgan from 'morgan';
 import { env, isProduction } from './config/env.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/auth.routes.js';
+import { productsRouter } from './routes/products.routes.js';
+import { cartRouter } from './routes/cart.routes.js';
+import { ordersRouter } from './routes/orders.routes.js';
+import { adminProductsRouter } from './routes/admin/products.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,6 +34,10 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/admin/products', adminProductsRouter);
 // Further feature routers are mounted here as each phase adds them.
 
 if (isProduction) {
