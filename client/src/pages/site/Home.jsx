@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
+import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 
 export default function Home() {
-  const { settings } = useOutletContext();
+  const settings = useSiteSettings();
   const [harvestedToday, setHarvestedToday] = useState([]);
   const [featured, setFeatured] = useState([]);
 

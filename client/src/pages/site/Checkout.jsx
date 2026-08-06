@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
 import { cartApi } from '../../api/cart.js';
 import { ordersApi } from '../../api/orders.js';
@@ -8,11 +8,12 @@ import { todayDateString } from '../../utils/dateFormat.js';
 import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
 import { ReceiptUploader } from '../../components/site/ReceiptUploader.jsx';
 import { showToast } from '../../utils/toast.js';
+import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 
 const DELIVERY_FEES = { Lalamove: 150.0, 'Self-Pickup': 0.0 };
 
 export default function Checkout() {
-  const { settings } = useOutletContext();
+  const settings = useSiteSettings();
   const { asItemsArray, clear } = useCart();
   const navigate = useNavigate();
   const mapRef = useRef(null);
