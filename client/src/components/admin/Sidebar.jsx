@@ -1,9 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { ADMIN_NAV_ITEMS } from './navItems.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export function Sidebar({ open, onNavigate }) {
   const { logout } = useAuth();
+  const location = useLocation();
 
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`} id="sidebar">
@@ -23,8 +24,11 @@ export function Sidebar({ open, onNavigate }) {
       <nav className="sidebar-nav">
         <ul>
           {ADMIN_NAV_ITEMS.map((item) => (
-            <li key={item.to}>
-              <NavLink to={item.to} className={({ isActive }) => (isActive ? 'active' : '')} onClick={onNavigate}>
+            // admin.css targets `.sidebar-nav li.active a`, not the anchor itself,
+            // so the active class has to live on the <li> - NavLink's className
+            // callback only ever sets it on the <a> it renders.
+            <li key={item.to} className={location.pathname.startsWith(item.to) ? 'active' : ''}>
+              <NavLink to={item.to} onClick={onNavigate}>
                 <i className={`fas ${item.icon}`} />
                 <span>{item.label}</span>
               </NavLink>

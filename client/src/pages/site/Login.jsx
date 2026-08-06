@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export default function Login() {
   const { user, login } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
 
   const [email, setEmail] = useState('');
@@ -12,19 +11,20 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  // Declarative redirect (not an imperative navigate() in handleSubmit) so there's
+  // no race between this guard re-rendering right after login() sets `user` and a
+  // separate navigate() call - both would otherwise fire off the same state update.
+  if (user) {
+    const target = user.role === 'admin' ? '/admin/dashboard' : location.state?.from?.pathname || '/';
+    return <Navigate to={target} replace />;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setSubmitting(true);
     try {
-      const loggedInUser = await login(email, password);
-      if (loggedInUser.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate(location.state?.from?.pathname || '/');
-      }
+      await login(email, password);
     } catch (err) {
       setError(err.message);
     } finally {
