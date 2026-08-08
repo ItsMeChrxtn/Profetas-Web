@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ordersApi } from '../../api/orders.js';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, formatDate, formatTime, orderNumberLabel } from '../../utils/dateFormat.js';
+import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
 
 const STATUS_STEPS = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed'];
 const STEP_ICONS = { Pending: 'fa-clock', Confirmed: 'fa-check', Processing: 'fa-cog', Shipped: 'fa-truck', Completed: 'fa-box-open' };
@@ -105,6 +106,12 @@ export default function TrackOrder() {
                     Tracking #: <strong>{order.trackingNumber}</strong>
                   </div>
                 )}
+                {order.lalamoveShareLink && (
+                  <a href={order.lalamoveShareLink} target="_blank" rel="noopener noreferrer" className="small d-block mt-1">
+                    <i className="fas fa-location-arrow me-1" />
+                    Track your rider live
+                  </a>
+                )}
               </div>
               <div className="col-md-3">
                 <div className="small text-muted mb-1">Payment</div>
@@ -119,6 +126,16 @@ export default function TrackOrder() {
                 </span>
               </div>
             </div>
+
+            {order.deliveryMethod === 'Lalamove' && order.trackingNumber && order.deliveryLat != null && order.deliveryLng != null && (
+              <div className="mt-3">
+                <div className="small text-muted mb-1">
+                  <i className="fas fa-map-marker-alt me-1" />
+                  Delivery Location
+                </div>
+                <DeliveryMap position={[order.deliveryLat, order.deliveryLng]} interactive={false} />
+              </div>
+            )}
           </div>
         );
       })}

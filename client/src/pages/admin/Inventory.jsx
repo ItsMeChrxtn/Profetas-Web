@@ -11,10 +11,16 @@ function stockStatusLabel(qty, threshold) {
   return 'In Stock';
 }
 const DOT_COLOR = { instock: '#166534', lowstock: '#F59E0B', outofstock: '#EF4444' };
+const STOCK_STATUS_FILTERS = [
+  { value: '', label: 'All' },
+  { value: 'in', label: 'In Stock' },
+  { value: 'low', label: 'Low Stock' },
+  { value: 'out', label: 'Out of Stock' },
+];
 
 export default function Inventory() {
   const [q, setQ] = useState('');
-  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [stockStatus, setStockStatus] = useState('');
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
@@ -22,13 +28,13 @@ export default function Inventory() {
   const [editValue, setEditValue] = useState(0);
 
   function reload() {
-    adminInventoryApi.list({ q, lowStockOnly: lowStockOnly ? 'true' : '', page }).then((data) => {
+    adminInventoryApi.list({ q, stockStatus, page }).then((data) => {
       setItems(data.items);
       setPagination(data.pagination);
     });
   }
 
-  useEffect(reload, [q, lowStockOnly, page]);
+  useEffect(reload, [q, stockStatus, page]);
 
   async function saveStock(productId) {
     try {
@@ -47,7 +53,7 @@ export default function Inventory() {
     <>
       <PageHeader title="Inventory" subtitle="Manage and track all inventory items and stock levels." />
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
         <div className="stat-card" style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
           <div style={{ width: 80, height: 80, background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: '#166534' }}>
             <i className="fas fa-boxes" />
@@ -66,25 +72,25 @@ export default function Inventory() {
             <span className="stat-value">{lowStockCount}</span>
           </div>
         </div>
-        <div className="stat-card" style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <div style={{ width: 80, height: 80, background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: '#1E40AF' }}>
-            <i className="fas fa-filter" />
-          </div>
-          <div>
-            <span className="stat-label">Filter</span>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginTop: 5 }}>
-              <input type="checkbox" checked={lowStockOnly} onChange={(e) => { setLowStockOnly(e.target.checked); setPage(1); }} />
-              Low stock only
-            </label>
-          </div>
-        </div>
       </div>
 
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: 15 }}>
           <h3 className="card-title">
             <i className="fas fa-clipboard-list" /> Inventory List
           </h3>
+          <div className="status-filter-row">
+            {STOCK_STATUS_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                className={`status-filter-pill ${stockStatus === f.value ? 'active' : ''}`}
+                onClick={() => { setStockStatus(f.value); setPage(1); }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           <div className="header-search" style={{ width: 300 }}>
             <i className="fas fa-search" />
             <input type="text" placeholder="Search inventory..." className="form-control" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />

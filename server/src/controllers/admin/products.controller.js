@@ -5,12 +5,13 @@ import { HttpError } from '../../utils/httpError.js';
 const PER_PAGE = 15;
 
 export async function listAdminProducts(req, res) {
-  const { q, category } = req.query;
+  const { q, category, status } = req.query;
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
 
   const filter = {};
   if (q && q.trim()) filter.name = { $regex: q.trim(), $options: 'i' };
   if (category && PRODUCT_CATEGORY_VALUES.includes(category)) filter.category = category;
+  if (status && ['Active', 'Inactive'].includes(status)) filter.status = status;
 
   const [items, total] = await Promise.all([
     Product.find(filter)

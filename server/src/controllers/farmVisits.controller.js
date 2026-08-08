@@ -1,5 +1,6 @@
 import { FarmVisit } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
+import { appEvents } from '../utils/eventBus.js';
 
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
@@ -25,5 +26,18 @@ export async function createFarmVisit(req, res) {
     notes: notes?.trim() || null,
   });
 
+  appEvents.emit('farmvisit:created', {
+    _id: visit._id,
+    name: visit.name,
+    visitDate: visit.visitDate,
+    visitTime: visit.visitTime,
+    numberOfVisitors: visit.numberOfVisitors,
+  });
+
   res.status(201).json({ success: true, visit });
+}
+
+export async function getMyFarmVisits(req, res) {
+  const visits = await FarmVisit.find({ customer: req.user.id }).sort({ createdAt: -1 });
+  res.json({ success: true, visits });
 }

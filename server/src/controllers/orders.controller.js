@@ -2,6 +2,7 @@ import { Order, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { placeOrder } from '../services/orders.service.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../middleware/upload.js';
 import { HttpError } from '../utils/httpError.js';
+import { appEvents } from '../utils/eventBus.js';
 
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
@@ -63,6 +64,14 @@ export async function createOrder(req, res, next) {
       deliveryMethod: req.body.deliveryMethod,
       deliveryDetails,
       payment: { referenceNumber: referenceNumber?.trim() || null, receiptImage: receiptPublicPath },
+    });
+
+    appEvents.emit('order:created', {
+      _id: order._id,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+      customerName: req.user.name,
+      orderDate: order.orderDate,
     });
 
     res.status(201).json({ success: true, message: 'Order placed! We will verify your payment shortly.', order });

@@ -3,6 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { adminCustomersApi } from '../../api/admin/customers.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { peso } from '../../utils/peso.js';
+import { todayDateString } from '../../utils/dateFormat.js';
+import { toCsv, downloadCsv } from '../../utils/csv.js';
+import { downloadPdfTable } from '../../utils/pdf.js';
+import { showToast } from '../../utils/toast.js';
 
 export default function Customers() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -11,6 +15,7 @@ export default function Customers() {
   const [searchInput, setSearchInput] = useState(q);
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     adminCustomersApi.list({ q, page }).then((data) => {
@@ -19,15 +24,69 @@ export default function Customers() {
     });
   }, [q, page]);
 
+  async function fetchAllCustomers() {
+    let allItems = [];
+    let exportPage = 1;
+    let totalPages = 1;
+    do {
+      const data = await adminCustomersApi.list({ q, page: exportPage });
+      allItems = allItems.concat(data.items);
+      totalPages = data.pagination.totalPages;
+      exportPage += 1;
+    } while (exportPage <= totalPages);
+    return allItems;
+  }
+
+  const CUSTOMER_HEADERS = ['Customer Name', 'Email', 'Location', 'Total Orders', 'Total Spent'];
+
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      // Raw numeric totalSpent (not peso-formatted) so spreadsheets can sum it directly.
+      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.email, c.lastAddress || '', c.totalOrders, c.totalSpent]);
+      downloadCsv(`customers-${todayDateString()}.csv`, toCsv(CUSTOMER_HEADERS, rows));
+    } catch (err) {
+      showToast('error', 'Could not export customers.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportPdf() {
+    setExporting(true);
+    try {
+      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.email, c.lastAddress || '—', c.totalOrders, peso(c.totalSpent)]);
+      await downloadPdfTable({ title: 'Customers', headers: CUSTOMER_HEADERS, rows, filename: `customers-${todayDateString()}.pdf` });
+    } catch (err) {
+      showToast('error', 'Could not export customers.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleCopyEmail(email) {
+    try {
+      await navigator.clipboard.writeText(email);
+      showToast('success', `Copied ${email} to clipboard.`);
+    } catch (err) {
+      showToast('error', 'Could not copy email.');
+    }
+  }
+
   return (
     <>
       <PageHeader
         title="Customers"
         subtitle="View and manage your customer database and purchase history."
         actions={
-          <button className="btn btn-outline">
-            <i className="fas fa-file-export" /> Export CSV
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-outline" onClick={handleExportCsv} disabled={exporting}>
+              <i className="fas fa-file-csv" /> {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+            <button className="btn btn-outline" onClick={handleExportPdf} disabled={exporting}>
+              <i className="fas fa-file-pdf" /> {exporting ? 'Exporting...' : 'Export PDF'}
+            </button>
+          </div>
         }
       />
 
@@ -87,9 +146,9 @@ export default function Customers() {
                     <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>{peso(customer.totalSpent)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 5 }}>
-                        <a href={`mailto:${customer.email}`} className="btn btn-icon btn-outline">
+                        <button type="button" className="btn btn-icon btn-outline" title="Copy email address" onClick={() => handleCopyEmail(customer.email)}>
                           <i className="far fa-envelope" />
-                        </a>
+                        </button>
                       </div>
                     </td>
                   </tr>

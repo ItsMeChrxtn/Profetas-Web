@@ -48,9 +48,15 @@ export default function FarmVisit() {
           <i className="fas fa-tractor fa-2x mb-3" style={{ color: 'var(--primary-green)' }} />
           <h4 className="fw-bold">Visit Request Sent!</h4>
           <p className="text-muted">We'll contact you to confirm your schedule.</p>
-          <Link to="/" className="btn btn-farm-primary mt-2">
-            Back to Home
-          </Link>
+          {user ? (
+            <Link to="/my-farm-visits" className="btn btn-farm-primary mt-2">
+              View My Requests
+            </Link>
+          ) : (
+            <Link to="/" className="btn btn-farm-primary mt-2">
+              Back to Home
+            </Link>
+          )}
         </div>
       ) : (
         <div className="farm-card">

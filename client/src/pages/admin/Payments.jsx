@@ -2,20 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminPaymentsApi } from '../../api/admin/payments.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
+import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, orderNumberLabel } from '../../utils/dateFormat.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
 
-function transactionStatusClass(status) {
-  if (status === 'Verified') return 'status-completed';
-  if (status === 'Rejected') return 'status-pending';
-  return 'status-processing';
-}
+const PAYMENT_STATUSES = ['Pending', 'Verified', 'Rejected'];
 
 export default function Payments() {
   const [pending, setPending] = useState([]);
   const [history, setHistory] = useState([]);
+  const [historyStatusFilter, setHistoryStatusFilter] = useState('');
 
   function reload() {
     adminPaymentsApi.pending().then((data) => setPending(data.orders));
@@ -23,6 +21,8 @@ export default function Payments() {
   }
 
   useEffect(reload, []);
+
+  const filteredHistory = historyStatusFilter ? history.filter((o) => o.payment.status === historyStatusFilter) : history;
 
   async function handleReview(order, action) {
     const confirmed = await confirmAction(
@@ -105,10 +105,29 @@ export default function Payments() {
       </div>
 
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: 15 }}>
           <h3 className="card-title">
             <i className="fas fa-history" /> Transaction History
           </h3>
+          <div className="status-filter-row">
+            <button
+              type="button"
+              className={`status-filter-pill ${historyStatusFilter === '' ? 'active' : ''}`}
+              onClick={() => setHistoryStatusFilter('')}
+            >
+              All
+            </button>
+            {PAYMENT_STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`status-filter-pill ${historyStatusFilter === s ? 'active' : ''}`}
+                onClick={() => setHistoryStatusFilter(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="table-container">
@@ -125,7 +144,7 @@ export default function Payments() {
               </tr>
             </thead>
             <tbody>
-              {history.map((order) => (
+              {filteredHistory.map((order) => (
                 <tr key={order._id}>
                   <td style={{ fontSize: 12, fontWeight: 600 }}>{orderNumberLabel(order.orderNumber)}</td>
                   <td style={{ fontSize: 12 }}>{formatDateTime(order.payment.createdAt)}</td>
@@ -139,9 +158,7 @@ export default function Payments() {
                   </td>
                   <td style={{ fontWeight: 700, color: '#166534' }}>{peso(order.payment.amount)}</td>
                   <td>
-                    <span className={`status-pill ${transactionStatusClass(order.payment.status)}`} style={{ fontSize: 11 }}>
-                      {order.payment.status}
-                    </span>
+                    <AdminStatusPill status={order.payment.status} style={{ fontSize: 11 }} />
                   </td>
                   <td>
                     <Link to={`/admin/delivery-booking?order_id=${order._id}`} className="btn btn-icon btn-outline">
@@ -150,10 +167,10 @@ export default function Payments() {
                   </td>
                 </tr>
               ))}
-              {history.length === 0 && (
+              {filteredHistory.length === 0 && (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
-                    No transactions yet.
+                    {history.length === 0 ? 'No transactions yet.' : 'No transactions match this filter.'}
                   </td>
                 </tr>
               )}

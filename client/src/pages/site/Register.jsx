@@ -1,16 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { showToast } from '../../utils/toast.js';
 
+const RESEND_COOLDOWN_SECONDS = 30;
+
 export default function Register() {
-  const { user, register } = useAuth();
+  const { user, register, verifyRegistrationOtp, resendRegistrationOtp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [step, setStep] = useState('form');
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', contactNumber: '', password: '', confirmPassword: '' });
+  const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   if (user) return <Navigate to="/" replace />;
 
@@ -23,14 +35,100 @@ export default function Register() {
     setErrors([]);
     setSubmitting(true);
     try {
-      const newUser = await register(form);
-      showToast('success', `Welcome to Profetas Farm, ${newUser.firstName}!`);
-      navigate(location.state?.from?.pathname || '/');
+      await register(form);
+      showToast('success', `We sent a verification code to ${form.email}.`);
+      setStep('otp');
+      setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       setErrors(err.errors || [err.message]);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    setErrors([]);
+    setSubmitting(true);
+    try {
+      const newUser = await verifyRegistrationOtp(form.email, otp);
+      showToast('success', `Welcome to Profetas Farm, ${newUser.firstName}!`);
+      navigate(location.state?.from?.pathname || '/');
+    } catch (err) {
+      setErrors([err.message]);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleResend() {
+    setResending(true);
+    try {
+      await resendRegistrationOtp(form.email);
+      showToast('success', `We sent a new code to ${form.email}.`);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err) {
+      showToast('error', err.message);
+    } finally {
+      setResending(false);
+    }
+  }
+
+  if (step === 'otp') {
+    return (
+      <div className="container" style={{ maxWidth: 460, paddingTop: 40, paddingBottom: 60 }}>
+        <div className="farm-card">
+          <h2 className="section-title text-center">Check Your Email</h2>
+          <p className="section-subtitle text-center">
+            We sent a 6-digit verification code to <strong>{form.email}</strong>.
+          </p>
+
+          {errors.length > 0 && (
+            <div className="alert alert-danger">
+              {errors.map((error, i) => (
+                <div key={i}>{error}</div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleVerify}>
+            <div className="mb-4">
+              <label className="form-label">Verification Code</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                className="form-control text-center"
+                style={{ fontSize: 24, letterSpacing: 8, fontWeight: 700 }}
+                placeholder="------"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                autoFocus
+              />
+            </div>
+            <button type="submit" className="btn btn-farm-primary w-100 mb-3" disabled={submitting || otp.length !== 6}>
+              {submitting ? 'Verifying...' : 'Verify & Create Account'}
+            </button>
+          </form>
+
+          <div className="text-center small">
+            {cooldown > 0 ? (
+              <span className="text-muted">Resend code in {cooldown}s</span>
+            ) : (
+              <button type="button" className="btn btn-link p-0" disabled={resending} onClick={handleResend}>
+                {resending ? 'Sending...' : "Didn't get the code? Resend"}
+              </button>
+            )}
+          </div>
+          <div className="text-center small mt-2">
+            <button type="button" className="btn btn-link p-0 text-muted" onClick={() => setStep('form')}>
+              Wrong email? Go back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -99,7 +197,7 @@ export default function Register() {
             </div>
           </div>
           <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting}>
-            {submitting ? 'Creating Account...' : 'Create Account'}
+            {submitting ? 'Sending Code...' : 'Create Account'}
           </button>
         </form>
 

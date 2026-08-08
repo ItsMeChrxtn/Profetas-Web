@@ -131,10 +131,13 @@ function ProductFormModal({ product, onClose, onSaved }) {
   );
 }
 
+const PRODUCT_STATUSES = ['Active', 'Inactive'];
+
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
+  const status = searchParams.get('status') || '';
   const page = parseInt(searchParams.get('page'), 10) || 1;
 
   const [searchInput, setSearchInput] = useState(q);
@@ -143,13 +146,13 @@ export default function Products() {
   const [modal, setModal] = useState(null);
 
   function reload() {
-    adminProductsApi.list({ q, category, page }).then((data) => {
+    adminProductsApi.list({ q, category, status, page }).then((data) => {
       setItems(data.items);
       setPagination(data.pagination);
     });
   }
 
-  useEffect(reload, [q, category, page]);
+  useEffect(reload, [q, category, status, page]);
 
   async function handleDelete(product) {
     const confirmed = await confirmAction('Delete this product? This cannot be undone.', { confirmButtonText: 'Yes, delete it' });
@@ -176,31 +179,58 @@ export default function Products() {
       />
 
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: 15 }}>
           <form
             className="header-search"
             style={{ width: 350 }}
             onSubmit={(e) => {
               e.preventDefault();
-              setSearchParams({ q: searchInput.trim(), category });
+              setSearchParams({ q: searchInput.trim(), category, status });
             }}
           >
             <i className="fas fa-search" />
             <input type="text" placeholder="Search products..." className="form-control" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
           </form>
-          <select
-            className="form-control"
-            style={{ width: 170 }}
-            value={category}
-            onChange={(e) => setSearchParams({ q, category: e.target.value })}
-          >
-            <option value="">All Categories</option>
+
+          <div className="status-filter-row">
+            <button
+              type="button"
+              className={`status-filter-pill ${category === '' ? 'active' : ''}`}
+              onClick={() => setSearchParams({ q, category: '', status })}
+            >
+              All Categories
+            </button>
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
+              <button
+                key={c}
+                type="button"
+                className={`status-filter-pill ${category === c ? 'active' : ''}`}
+                onClick={() => setSearchParams({ q, category: c, status })}
+              >
                 {c}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
+
+          <div className="status-filter-row">
+            <button
+              type="button"
+              className={`status-filter-pill ${status === '' ? 'active' : ''}`}
+              onClick={() => setSearchParams({ q, category, status: '' })}
+            >
+              All Status
+            </button>
+            {PRODUCT_STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`status-filter-pill ${status === s ? 'active' : ''}`}
+                onClick={() => setSearchParams({ q, category, status: s })}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="table-container">
@@ -279,7 +309,7 @@ export default function Products() {
               <button
                 key={i}
                 className={`btn btn-icon ${i === page ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setSearchParams({ q, category, page: i })}
+                onClick={() => setSearchParams({ q, category, status, page: i })}
               >
                 {i}
               </button>

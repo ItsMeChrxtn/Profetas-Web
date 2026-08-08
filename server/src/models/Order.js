@@ -53,6 +53,8 @@ const orderSchema = new mongoose.Schema(
     pickupDate: { type: String, default: null },
     pickupTime: { type: String, default: null },
     trackingNumber: { type: String, default: null },
+    lalamoveShareLink: { type: String, default: null },
+    lalamoveQuotedPrice: { type: Number, default: null },
     payment: { type: paymentSchema, required: true },
   },
   { timestamps: { createdAt: false, updatedAt: 'updatedAt' } }

@@ -1,4 +1,5 @@
 export { User } from './User.js';
+export { PendingRegistration } from './PendingRegistration.js';
 export { Product, PRODUCT_CATEGORY_VALUES } from './Product.js';
 export { Order, ORDER_STATUS_VALUES, DELIVERY_METHOD_VALUES, PAYMENT_STATUS_VALUES } from './Order.js';
 export { WholesaleInquiry, WHOLESALE_STATUS_VALUES } from './WholesaleInquiry.js';

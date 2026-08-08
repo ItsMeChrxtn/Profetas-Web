@@ -12,11 +12,21 @@ const NAV_LINKS = [
   { to: '/track-order', label: 'Track Order' },
 ];
 
-export function Navbar() {
+const emptyNotifications = { notifications: [], unreadCount: 0, markAllRead: () => {} };
+
+export function Navbar({ notifications = emptyNotifications }) {
   const { user, logout } = useAuth();
   const { count } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { notifications: myNotifications, unreadCount, markAllRead } = notifications;
+
+  function toggleNotif() {
+    const opening = !notifOpen;
+    setNotifOpen(opening);
+    if (opening) markAllRead();
+  }
 
   return (
     <nav className="site-navbar">
@@ -57,6 +67,32 @@ export function Navbar() {
                 </span>
               </Link>
 
+              {user && (
+                <div className="dropdown position-relative">
+                  <button type="button" className="btn text-dark position-relative cart-badge-wrap" onClick={toggleNotif} title="Notifications">
+                    <i className="far fa-bell fa-lg" />
+                    {unreadCount > 0 && (
+                      <span className="cart-count-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <ul className="dropdown-menu dropdown-menu-end show" style={{ position: 'absolute', right: 0, minWidth: 280 }}>
+                      <li className="dropdown-header">Notifications</li>
+                      {myNotifications.length === 0 && (
+                        <li>
+                          <span className="dropdown-item-text text-muted small">No new notifications</span>
+                        </li>
+                      )}
+                      {myNotifications.map((n) => (
+                        <li key={n.id}>
+                          <span className="dropdown-item-text small">{n.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
               {user ? (
                 <div className="dropdown">
                   <button type="button" className="btn btn-farm-outline dropdown-toggle" onClick={() => setProfileOpen((v) => !v)}>
@@ -77,6 +113,11 @@ export function Navbar() {
                       <li>
                         <Link className="dropdown-item" to="/track-order" onClick={() => setProfileOpen(false)}>
                           <i className="fas fa-truck me-2" />My Orders
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/my-farm-visits" onClick={() => setProfileOpen(false)}>
+                          <i className="fas fa-tractor me-2" />My Farm Visit Requests
                         </Link>
                       </li>
                       <li>

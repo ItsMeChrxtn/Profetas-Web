@@ -282,11 +282,19 @@ export default function DeliveryBooking() {
                   )}
 
                   {order.trackingNumber ? (
-                    <div className="alert-box" style={{ background: '#DBEAFE', color: '#1E40AF', marginBottom: 0 }}>
-                      <i className="fas fa-check-circle" />
+                    <div className="alert-box" style={{ background: '#DBEAFE', color: '#1E40AF', marginBottom: 0, flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
                       <span>
-                        Booked with Lalamove &mdash; tracking number <strong>{order.trackingNumber}</strong>
+                        <i className="fas fa-check-circle me-2" />
+                        Booked with Lalamove &mdash; order ID <strong>{order.trackingNumber}</strong>
                       </span>
+                      {order.lalamoveQuotedPrice != null && (
+                        <span>Lalamove quoted price: <strong>{peso(order.lalamoveQuotedPrice)}</strong></span>
+                      )}
+                      {order.lalamoveShareLink && (
+                        <a href={order.lalamoveShareLink} target="_blank" rel="noopener noreferrer">
+                          <i className="fas fa-location-arrow me-1" /> View live tracking
+                        </a>
+                      )}
                     </div>
                   ) : (
                     <button className="btn-book" onClick={handleBookCourier} disabled={booking}>

@@ -16,6 +16,7 @@ import Register from './pages/site/Register.jsx';
 import TrackOrder from './pages/site/TrackOrder.jsx';
 import Wholesale from './pages/site/Wholesale.jsx';
 import FarmVisit from './pages/site/FarmVisit.jsx';
+import MyFarmVisits from './pages/site/MyFarmVisits.jsx';
 import Education from './pages/site/Education.jsx';
 import EducationPost from './pages/site/EducationPost.jsx';
 import Loyalty from './pages/site/Loyalty.jsx';
@@ -55,6 +56,7 @@ export default function App() {
               <Route element={<RequireAuth />}>
                 <Route path="checkout" element={<Checkout />} />
                 <Route path="track-order" element={<TrackOrder />} />
+                <Route path="my-farm-visits" element={<MyFarmVisits />} />
                 <Route path="loyalty" element={<Loyalty />} />
                 <Route path="account" element={<Account />} />
               </Route>

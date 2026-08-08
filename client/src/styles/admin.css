@@ -316,6 +316,10 @@ body {
     position: relative;
 }
 
+.notification-wrapper {
+    position: relative;
+}
+
 .profile-info {
     display: flex;
     align-items: center;
@@ -386,6 +390,91 @@ body {
     border: none;
     border-top: 1px solid var(--border-color);
     margin: 5px 0;
+}
+
+/* Notification dropdown */
+.notif-menu {
+    width: 340px;
+    overflow: hidden;
+}
+
+.dropdown-header {
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dropdown-body {
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.dropdown-body a {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dropdown-body a:last-child {
+    border-bottom: none;
+}
+
+.notif-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.notif-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.notif-time {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.dropdown-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.dropdown-empty i {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.4;
+}
+
+.dropdown-footer {
+    padding: 12px 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.dropdown-footer a {
+    display: inline;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-green);
+}
+
+.dropdown-footer a:hover {
+    background: none;
+    text-decoration: underline;
 }
 
 /* Page Header Row */
@@ -470,12 +559,14 @@ body {
 .stat-icon-wrapper.blue { background: #EFF6FF; color: #1E40AF; }
 
 .stat-label {
+    display: block;
     font-size: 13px;
     color: var(--text-muted);
     margin-bottom: 5px;
 }
 
 .stat-value {
+    display: block;
     font-size: 24px;
     font-weight: 800;
     margin-bottom: 15px;
@@ -522,7 +613,8 @@ tr:last-child td {
     border-bottom: none;
 }
 
-/* Status Pills */
+/* Status Pills - one class per real status value, each colored for what it
+   actually means (not shared red/amber/green buckets - see StatusPill.jsx). */
 .status-pill {
     padding: 6px 12px;
     border-radius: 20px;
@@ -531,19 +623,39 @@ tr:last-child td {
     display: inline-block;
 }
 
-.status-completed, .status-active, .status-instock {
+.status-completed, .status-active, .status-instock, .status-verified, .status-paid {
     background: var(--success-bg);
     color: var(--success-text);
 }
 
-.status-processing, .status-shipped, .status-lowstock {
+.status-pending, .status-quoted, .status-lowstock {
     background: var(--warning-bg);
     color: var(--warning-text);
 }
 
-.status-pending, .status-outofstock {
+.status-cancelled, .status-outofstock, .status-rejected {
     background: var(--danger-bg);
     color: var(--danger-text);
+}
+
+.status-confirmed, .status-new {
+    background: var(--info-bg);
+    color: var(--info-text);
+}
+
+.status-processing {
+    background: #EDE9FE;
+    color: #5B21B6;
+}
+
+.status-shipped {
+    background: #CFFAFE;
+    color: #155E75;
+}
+
+.status-inactive, .status-closed {
+    background: var(--border-color);
+    color: var(--text-muted);
 }
 
 /* Buttons */
@@ -581,6 +693,36 @@ tr:last-child td {
     height: 36px;
     padding: 0;
     justify-content: center;
+}
+
+/* Status filter pills */
+.status-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.status-filter-pill {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.status-filter-pill:hover {
+    border-color: var(--primary-green);
+}
+
+.status-filter-pill.active {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+    color: var(--white);
 }
 
 /* Forms */

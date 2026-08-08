@@ -21,10 +21,21 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  // Two-step signup: register() only sends the OTP email - no account exists
+  // yet. verifyRegistrationOtp() is what actually creates the user and logs
+  // them in.
   const register = useCallback(async (payload) => {
-    const data = await authApi.register(payload);
+    return authApi.register(payload);
+  }, []);
+
+  const verifyRegistrationOtp = useCallback(async (email, otp) => {
+    const data = await authApi.verifyRegistrationOtp({ email, otp });
     setUser(data.user);
     return data.user;
+  }, []);
+
+  const resendRegistrationOtp = useCallback(async (email) => {
+    return authApi.resendRegistrationOtp({ email });
   }, []);
 
   const logout = useCallback(async () => {
@@ -32,7 +43,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, verifyRegistrationOtp, resendRegistrationOtp, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

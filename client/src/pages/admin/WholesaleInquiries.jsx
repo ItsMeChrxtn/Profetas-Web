@@ -2,17 +2,12 @@ import { useEffect, useState } from 'react';
 import { adminWholesaleApi } from '../../api/admin/wholesale.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { Modal } from '../../components/admin/Modal.jsx';
+import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDate } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
 
 const STATUSES = ['New', 'Quoted', 'Closed'];
-
-function statusClass(status) {
-  if (status === 'New') return 'status-pending';
-  if (status === 'Quoted') return 'status-processing';
-  return 'status-completed';
-}
 
 function excerpt(text) {
   return text.length > 80 ? `${text.slice(0, 80)}...` : text;
@@ -90,6 +85,7 @@ export default function WholesaleInquiries() {
   const [inquiries, setInquiries] = useState([]);
   const [newCount, setNewCount] = useState(0);
   const [selected, setSelected] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
 
   function reload() {
     adminWholesaleApi.list().then((data) => {
@@ -100,15 +96,32 @@ export default function WholesaleInquiries() {
 
   useEffect(reload, []);
 
+  const filteredInquiries = statusFilter ? inquiries.filter((i) => i.status === statusFilter) : inquiries;
+
   return (
     <>
       <PageHeader title="Wholesale Inquiries" subtitle="Review bulk/reseller inquiries from the customer site and send quotations." />
 
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: 15 }}>
           <h3 className="card-title">
             <i className="fas fa-truck-loading" /> Wholesale Inquiries
           </h3>
+          <div className="status-filter-row">
+            <button type="button" className={`status-filter-pill ${statusFilter === '' ? 'active' : ''}`} onClick={() => setStatusFilter('')}>
+              All
+            </button>
+            {STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`status-filter-pill ${statusFilter === s ? 'active' : ''}`}
+                onClick={() => setStatusFilter(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
           <span className="status-pill status-pending">{newCount} new</span>
         </div>
 
@@ -127,7 +140,7 @@ export default function WholesaleInquiries() {
               </tr>
             </thead>
             <tbody>
-              {inquiries.map((inquiry) => (
+              {filteredInquiries.map((inquiry) => (
                 <tr key={inquiry._id}>
                   <td style={{ fontSize: 12 }}>{formatDate(inquiry.createdAt)}</td>
                   <td style={{ fontWeight: 600 }}>{inquiry.name}</td>
@@ -136,7 +149,7 @@ export default function WholesaleInquiries() {
                   <td style={{ maxWidth: 220, fontSize: 12, color: 'var(--text-muted)' }}>{excerpt(inquiry.requestedItems)}</td>
                   <td>{inquiry.estimatedBudget ? peso(inquiry.estimatedBudget) : '—'}</td>
                   <td>
-                    <span className={`status-pill ${statusClass(inquiry.status)}`}>{inquiry.status}</span>
+                    <AdminStatusPill status={inquiry.status} />
                   </td>
                   <td>
                     <button className="btn btn-icon btn-outline" onClick={() => setSelected(inquiry)}>
@@ -145,10 +158,10 @@ export default function WholesaleInquiries() {
                   </td>
                 </tr>
               ))}
-              {inquiries.length === 0 && (
+              {filteredInquiries.length === 0 && (
                 <tr>
                   <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
-                    No wholesale inquiries yet.
+                    {inquiries.length === 0 ? 'No wholesale inquiries yet.' : 'No inquiries match this filter.'}
                   </td>
                 </tr>
               )}

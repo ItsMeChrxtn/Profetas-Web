@@ -3,12 +3,19 @@ import { Order } from '../models/index.js';
 import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../utils/httpError.js';
 import { decrementStockOrThrow } from './stock.service.js';
+import { appEvents } from '../utils/eventBus.js';
 
 // Hardcoded flat fee, matching the original checkout.php - not a real courier API quote.
 const DELIVERY_FEES = { Lalamove: 150.0, 'Self-Pickup': 0.0 };
 
 function round2(n) {
   return Math.round(n * 100) / 100;
+}
+
+function stockStatusFor(qty, threshold) {
+  if (qty <= 0) return 'Out of Stock';
+  if (qty <= threshold) return 'Low Stock';
+  return 'In Stock';
 }
 
 /**
@@ -29,6 +36,7 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryDe
 
   const session = await mongoose.startSession();
   let order;
+  const lowStockAlerts = [];
 
   try {
     await session.withTransaction(async () => {
@@ -52,6 +60,20 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryDe
           quantity: qty,
           subtotal: lineSubtotal,
         });
+
+        // Only alert when this order just pushed the product into a worse
+        // stock tier - not on every subsequent order against an already-low item.
+        const statusBefore = stockStatusFor(product.stockQty + qty, product.lowStockThreshold);
+        const statusAfter = stockStatusFor(product.stockQty, product.lowStockThreshold);
+        if (statusAfter !== 'In Stock' && statusAfter !== statusBefore) {
+          lowStockAlerts.push({
+            _id: product._id,
+            name: product.name,
+            stockQty: product.stockQty,
+            lowStockThreshold: product.lowStockThreshold,
+            status: statusAfter,
+          });
+        }
       }
 
       const deliveryFee = DELIVERY_FEES[deliveryMethod];
@@ -85,6 +107,10 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryDe
     });
   } finally {
     await session.endSession();
+  }
+
+  for (const alert of lowStockAlerts) {
+    appEvents.emit('product:lowstock', alert);
   }
 
   return order;

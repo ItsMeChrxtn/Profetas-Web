@@ -4,7 +4,10 @@ import { adminOrdersApi } from '../../api/admin/orders.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
-import { formatDate, orderNumberLabel } from '../../utils/dateFormat.js';
+import { formatDate, orderNumberLabel, todayDateString } from '../../utils/dateFormat.js';
+import { toCsv, downloadCsv } from '../../utils/csv.js';
+import { downloadPdfTable } from '../../utils/pdf.js';
+import { showToast } from '../../utils/toast.js';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
 
@@ -17,6 +20,7 @@ export default function Orders() {
   const [searchInput, setSearchInput] = useState(q);
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     adminOrdersApi.list({ q, status, page }).then((data) => {
@@ -25,20 +29,65 @@ export default function Orders() {
     });
   }, [q, status, page]);
 
+  async function fetchAllOrders() {
+    let allItems = [];
+    let exportPage = 1;
+    let totalPages = 1;
+    do {
+      const data = await adminOrdersApi.list({ q, status, page: exportPage });
+      allItems = allItems.concat(data.items);
+      totalPages = data.pagination.totalPages;
+      exportPage += 1;
+    } while (exportPage <= totalPages);
+    return allItems;
+  }
+
+  const ORDER_HEADERS = ['Order ID', 'Customer', 'Date', 'Total', 'Status'];
+
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      // Raw numeric total (not peso-formatted) so spreadsheets can sum it directly.
+      const rows = (await fetchAllOrders()).map((o) => [orderNumberLabel(o.orderNumber), o.customerName, formatDate(o.orderDate), o.totalAmount, o.status]);
+      downloadCsv(`orders-${todayDateString()}.csv`, toCsv(ORDER_HEADERS, rows));
+    } catch (err) {
+      showToast('error', 'Could not export orders.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportPdf() {
+    setExporting(true);
+    try {
+      const rows = (await fetchAllOrders()).map((o) => [orderNumberLabel(o.orderNumber), o.customerName, formatDate(o.orderDate), peso(o.totalAmount), o.status]);
+      await downloadPdfTable({ title: 'Orders', headers: ORDER_HEADERS, rows, filename: `orders-${todayDateString()}.pdf` });
+    } catch (err) {
+      showToast('error', 'Could not export orders.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <>
       <PageHeader
         title="Orders"
         subtitle="Manage and track all customer orders and deliveries."
         actions={
-          <button className="btn btn-outline">
-            <i className="fas fa-download" /> Export
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-outline" onClick={handleExportCsv} disabled={exporting}>
+              <i className="fas fa-file-csv" /> {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+            <button className="btn btn-outline" onClick={handleExportPdf} disabled={exporting}>
+              <i className="fas fa-file-pdf" /> {exporting ? 'Exporting...' : 'Export PDF'}
+            </button>
+          </div>
         }
       />
 
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: 15 }}>
           <form
             className="header-search"
             style={{ width: 350 }}
@@ -56,14 +105,26 @@ export default function Orders() {
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </form>
-          <select className="form-control" style={{ width: 150 }} value={status} onChange={(e) => setSearchParams({ q, status: e.target.value })}>
-            <option value="">All Status</option>
+
+          <div className="status-filter-row">
+            <button
+              type="button"
+              className={`status-filter-pill ${status === '' ? 'active' : ''}`}
+              onClick={() => setSearchParams({ q, status: '' })}
+            >
+              All
+            </button>
             {STATUSES.map((s) => (
-              <option key={s} value={s}>
+              <button
+                key={s}
+                type="button"
+                className={`status-filter-pill ${status === s ? 'active' : ''}`}
+                onClick={() => setSearchParams({ q, status: s })}
+              >
                 {s}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         <div className="table-container">
