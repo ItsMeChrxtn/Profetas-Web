@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -73,8 +74,11 @@ app.use('/api/admin/education-posts', adminEducationRouter);
 app.use('/api/admin/farm-visits', adminFarmVisitsRouter);
 app.use('/api/admin/wholesale-inquiries', adminWholesaleRouter);
 
-if (isProduction) {
-  const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
+// Only relevant for a single-service deploy (this Express app also serving the
+// built client). When the client is deployed separately (e.g. Vercel), the
+// client/dist folder simply won't exist here and this block is skipped.
+const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
+if (isProduction && fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();

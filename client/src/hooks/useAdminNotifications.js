@@ -3,6 +3,7 @@ import { showToast } from '../utils/toast.js';
 import { peso } from '../utils/peso.js';
 import { orderNumberLabel, formatDate, formatTime } from '../utils/dateFormat.js';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_NOTIFICATIONS = 20;
 
 // Mirrors the icons/labels already used for these sections in navItems.js.
@@ -23,7 +24,7 @@ export function useAdminNotifications(enabled) {
   useEffect(() => {
     if (!enabled) return undefined;
 
-    const source = new EventSource('/api/admin/notifications/stream', { withCredentials: true });
+    const source = new EventSource(`${API_BASE}/api/admin/notifications/stream`, { withCredentials: true });
 
     const addNotification = (type, id, text, href) => {
       const meta = TYPE_META[type];

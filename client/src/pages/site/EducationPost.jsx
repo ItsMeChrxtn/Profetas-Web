@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { educationApi } from '../../api/education.js';
 import { formatDate } from '../../utils/dateFormat.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 export default function EducationPost() {
   const { id } = useParams();
@@ -44,7 +45,7 @@ export default function EducationPost() {
 
       {post.image && (
         <img
-          src={post.image}
+          src={mediaUrl(post.image)}
           alt=""
           className="w-100 mb-4"
           style={{ borderRadius: 'var(--radius-md)', maxHeight: 400, objectFit: 'cover' }}

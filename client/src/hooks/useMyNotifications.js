@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { showToast } from '../utils/toast.js';
 import { orderNumberLabel } from '../utils/dateFormat.js';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_NOTIFICATIONS = 20;
 
 /** Keeps a live SSE connection to /api/notifications/stream so a logged-in
@@ -13,7 +14,7 @@ export function useMyNotifications(enabled) {
   useEffect(() => {
     if (!enabled) return undefined;
 
-    const source = new EventSource('/api/notifications/stream', { withCredentials: true });
+    const source = new EventSource(`${API_BASE}/api/notifications/stream`, { withCredentials: true });
 
     const addNotification = (message) => {
       setNotifications((prev) => [message, ...prev].slice(0, MAX_NOTIFICATIONS));

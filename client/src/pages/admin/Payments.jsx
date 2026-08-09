@@ -5,6 +5,7 @@ import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, orderNumberLabel } from '../../utils/dateFormat.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
 
@@ -78,7 +79,7 @@ export default function Payments() {
                     <td>{order.payment.referenceNumber || '—'}</td>
                     <td>
                       {order.payment.receiptImage ? (
-                        <a href={order.payment.receiptImage} target="_blank" rel="noopener noreferrer">
+                        <a href={mediaUrl(order.payment.receiptImage)} target="_blank" rel="noopener noreferrer">
                           View
                         </a>
                       ) : (

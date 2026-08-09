@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { peso } from '../../utils/peso.js';
 import { StockBadge } from './StockBadge.jsx';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 export function ProductCard({ product, harvestedLabel = 'Harvested Today' }) {
   return (
@@ -13,7 +14,7 @@ export function ProductCard({ product, harvestedLabel = 'Harvested Today' }) {
       <Link to={`/product/${product._id}`} className="text-decoration-none text-reset">
         <div className="product-img-wrap">
           <img
-            src={product.image || '/placeholder.svg'}
+            src={mediaUrl(product.image) || '/placeholder.svg'}
             alt={product.name}
             onError={(e) => {
               e.currentTarget.onerror = null;

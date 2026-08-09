@@ -4,6 +4,7 @@ import { adminProductsApi } from '../../api/admin/products.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { formatDate } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 function stockStatusLabel(qty, threshold) {
   if (qty <= 0) return 'Out of Stock';
@@ -118,7 +119,7 @@ export default function Inventory() {
                   <tr key={item._id}>
                     <td style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <img
-                        src={item.image || '/placeholder.svg'}
+                        src={mediaUrl(item.image) || '/placeholder.svg'}
                         style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }}
                         onError={(e) => {
                           e.currentTarget.onerror = null;

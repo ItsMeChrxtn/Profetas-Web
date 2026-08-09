@@ -5,6 +5,7 @@ import { Modal } from '../../components/admin/Modal.jsx';
 import { formatDate } from '../../utils/dateFormat.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 const CATEGORIES = ['Tutorial', 'Tip', 'Recipe'];
 
@@ -140,7 +141,7 @@ export default function Education() {
                 <tr key={post._id}>
                   <td>
                     <img
-                      src={post.image || '/placeholder.svg'}
+                      src={mediaUrl(post.image) || '/placeholder.svg'}
                       style={{ width: 50, height: 50, borderRadius: 10, objectFit: 'cover', border: '1px solid var(--border-color)' }}
                       onError={(e) => {
                         e.currentTarget.onerror = null;

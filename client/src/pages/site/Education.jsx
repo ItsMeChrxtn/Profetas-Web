@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { educationApi } from '../../api/education.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 const CATEGORIES = ['Tutorial', 'Tip', 'Recipe'];
 
@@ -47,7 +48,7 @@ export default function Education() {
                 <Link to={`/education/${post._id}`} className="text-decoration-none text-reset">
                   <div className="product-img-wrap">
                     <img
-                      src={post.image || '/placeholder.svg'}
+                      src={mediaUrl(post.image) || '/placeholder.svg'}
                       alt={post.title}
                       onError={(e) => {
                         e.currentTarget.onerror = null;

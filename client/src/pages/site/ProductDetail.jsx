@@ -7,6 +7,7 @@ import { stockStatus, StockBadge } from '../../components/site/StockBadge.jsx';
 import { QuantityStepper } from '../../components/site/QuantityStepper.jsx';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
 import { showToast } from '../../utils/toast.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -74,7 +75,7 @@ export default function ProductDetail() {
               </span>
             )}
             <img
-              src={product.image || '/placeholder.svg'}
+              src={mediaUrl(product.image) || '/placeholder.svg'}
               alt={product.name}
               onError={(e) => {
                 e.currentTarget.onerror = null;
@@ -129,7 +130,7 @@ export default function ProductDetail() {
                   <Link to={`/product/${r._id}`} className="text-decoration-none text-reset">
                     <div className="product-img-wrap">
                       <img
-                        src={r.image || '/placeholder.svg'}
+                        src={mediaUrl(r.image) || '/placeholder.svg'}
                         alt={r.name}
                         onError={(e) => {
                           e.currentTarget.onerror = null;

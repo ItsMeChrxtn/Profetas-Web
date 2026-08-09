@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
 import { cartApi } from '../../api/cart.js';
 import { peso } from '../../utils/peso.js';
+import { mediaUrl } from '../../utils/mediaUrl.js';
 
 function CartRow({ item, onUpdate, onRemove }) {
   const [qty, setQty] = useState(item.quantity);
@@ -10,7 +11,7 @@ function CartRow({ item, onUpdate, onRemove }) {
   return (
     <div className="d-flex align-items-center gap-3 p-3 border-bottom">
       <img
-        src={item.image || '/placeholder.svg'}
+        src={mediaUrl(item.image) || '/placeholder.svg'}
         alt=""
         style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: 10 }}
         onError={(e) => {
