@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { showToast } from '../utils/toast.js';
 import { peso } from '../utils/peso.js';
 import { orderNumberLabel, formatDate, formatTime } from '../utils/dateFormat.js';
+import { API_BASE } from '../utils/apiBase.js';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_NOTIFICATIONS = 20;
 
 // Mirrors the icons/labels already used for these sections in navItems.js.

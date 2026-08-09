@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+import { API_BASE } from '../utils/apiBase.js';
 
 async function request(path, options = {}) {
   const isFormData = options.body instanceof FormData;

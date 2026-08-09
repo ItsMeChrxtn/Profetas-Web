@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { showToast } from '../utils/toast.js';
 import { orderNumberLabel } from '../utils/dateFormat.js';
+import { API_BASE } from '../utils/apiBase.js';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_NOTIFICATIONS = 20;
 
 /** Keeps a live SSE connection to /api/notifications/stream so a logged-in

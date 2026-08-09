@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+import { API_BASE } from './apiBase.js';
 
 /** Resolves a server-relative upload path (e.g. "/uploads/products/x.jpg")
  * against the API's own origin - needed once the client (Vercel) and API

@@ -17,9 +17,6 @@ export default function Home() {
   return (
     <div className="container">
       <section className="hero-section">
-        <div className="hero-media">
-          <img src="/hero/farm-cover.jpg" alt="Profetas Integrated Farm" onError={(e) => (e.currentTarget.style.display = 'none')} />
-        </div>
         <div className="hero-content">
           {harvestedToday.length > 0 && (
             <div className="harvest-strip mb-3 d-inline-flex">
