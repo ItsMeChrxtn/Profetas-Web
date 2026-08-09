@@ -356,9 +356,8 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     width: 320px; max-width: calc(100vw - 48px);
     background: var(--white); border-radius: var(--radius-md);
     box-shadow: var(--shadow-md); border: 1px solid var(--border-color);
-    display: none; overflow: hidden;
+    overflow: hidden;
 }
-.chat-panel.open { display: block; }
 .chat-panel-header {
     background: var(--primary-green); color: #fff; padding: 14px 18px;
     display: flex; align-items: center; justify-content: space-between; font-weight: 700;
