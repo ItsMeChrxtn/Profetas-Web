@@ -33,9 +33,7 @@ export function Navbar({ notifications = emptyNotifications }) {
       <div className="container">
         <div className="d-flex align-items-center justify-content-between">
           <Link to="/" className="brand-logo">
-            <span className="logo-icon">
-              <i className="fas fa-leaf" />
-            </span>
+            <img src="/logo.svg" alt="Profetas Farm" className="brand-logo-img" />
             <span>PROFETAS FARM</span>
           </Link>
 

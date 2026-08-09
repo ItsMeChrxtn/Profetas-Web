@@ -6,7 +6,10 @@ export function Footer({ facebookUrl, shopeeUrl }) {
       <div className="container">
         <div className="row g-4">
           <div className="col-lg-4">
-            <h5><i className="fas fa-leaf me-2" />Profetas Integrated Farm</h5>
+            <h5 className="d-flex align-items-center gap-2">
+              <img src="/logo.svg" alt="" width="24" height="24" />
+              Profetas Integrated Farm
+            </h5>
             <p className="small mb-1">Tres Cruces, Tanza, Cavite</p>
             <p className="small">Premium Quality, Naturally Grown mushrooms, mokusaku, mangoes, and farm inputs from our cooperative to your table.</p>
           </div>

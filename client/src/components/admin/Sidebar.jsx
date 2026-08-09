@@ -10,9 +10,7 @@ export function Sidebar({ open, onNavigate }) {
     <aside className={`sidebar ${open ? 'open' : ''}`} id="sidebar">
       <div className="sidebar-header">
         <div className="logo">
-          <div className="logo-icon">
-            <i className="fas fa-leaf" />
-          </div>
+          <img src="/logo.svg" alt="Profetas Farm" className="logo-icon-img" />
           <div className="logo-text">
             <span className="brand-name">PROFETAS</span>
             <span className="brand-sub">FARM</span>
