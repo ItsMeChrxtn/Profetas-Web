@@ -387,11 +387,29 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
 }
 
 /* Below Bootstrap's lg breakpoint the navbar collapses into the hamburger
-   menu - .nav-actions (cart/notifications/login/signup) needs to wrap
-   instead of forcing a single unbreakable row that overflows the screen. */
+   menu. Bootstrap's .nav is a wrapping flex row by default, which packs
+   short links side by side unpredictably - force a clean single-column
+   list instead, one link per row like a normal mobile menu. .nav-actions
+   (cart/notifications/login/signup) gets the same treatment so it can't
+   force a single unbreakable row that overflows the screen either. */
 @media (max-width: 991.98px) {
+    .site-navbar .nav {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+    .site-navbar .nav-item {
+        width: 100%;
+    }
+    .site-navbar .nav-link {
+        display: block;
+        padding: 10px 0 !important;
+        border-bottom: 1px solid var(--border-color);
+    }
     .nav-actions {
         flex-wrap: wrap;
         row-gap: 12px;
+        width: 100%;
+        margin-top: 15px;
     }
 }
