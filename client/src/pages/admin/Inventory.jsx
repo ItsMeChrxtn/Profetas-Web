@@ -54,7 +54,7 @@ export default function Inventory() {
     <>
       <PageHeader title="Inventory" subtitle="Manage and track all inventory items and stock levels." />
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <div className="stat-card" style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
           <div style={{ width: 80, height: 80, background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: '#166534' }}>
             <i className="fas fa-boxes" />

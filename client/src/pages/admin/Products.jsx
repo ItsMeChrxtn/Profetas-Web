@@ -77,7 +77,7 @@ function ProductFormModal({ product, onClose, onSaved }) {
           <label>Product Name</label>
           <input type="text" className="form-control" required value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Enter product name" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 15 }}>
           <div className="form-group">
             <label>Category</label>
             <select className="form-control" required value={form.category} onChange={(e) => update('category', e.target.value)}>
@@ -94,7 +94,7 @@ function ProductFormModal({ product, onClose, onSaved }) {
             <input type="number" step="0.01" className="form-control" required value={form.price} onChange={(e) => update('price', e.target.value)} placeholder="0.00" />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 15 }}>
           <div className="form-group">
             <label>Unit</label>
             <input type="text" className="form-control" value={form.unit} onChange={(e) => update('unit', e.target.value)} placeholder="kg, pack, bottle..." />
@@ -108,7 +108,7 @@ function ProductFormModal({ product, onClose, onSaved }) {
           <label>Description</label>
           <textarea className="form-control" rows={3} value={form.description} onChange={(e) => update('description', e.target.value)} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 15 }}>
           <div className="form-group">
             <label>Status</label>
             <select className="form-control" value={form.status} onChange={(e) => update('status', e.target.value)}>

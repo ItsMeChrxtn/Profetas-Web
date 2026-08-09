@@ -39,7 +39,7 @@ export default function Dashboard() {
         <StatCard icon="fa-leaf" iconColor="green" label="Low Stock Items" value={stats.lowStockCount} />
       </div>
 
-      <div className="dashboard-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, marginBottom: 30 }}>
+      <div className="dashboard-row cols-even">
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">
@@ -106,7 +106,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="dashboard-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 30 }}>
+      <div className="dashboard-row cols-wide-left">
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">

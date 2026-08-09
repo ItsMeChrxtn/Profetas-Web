@@ -33,7 +33,7 @@ export default function Reports() {
         title="Reports"
         subtitle="Analyze your sales performance and farm productivity."
         actions={
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <input type="date" className="form-control" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             <span>to</span>
             <input type="date" className="form-control" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
@@ -50,7 +50,7 @@ export default function Reports() {
         <StatCard label="Total Orders" value={summary.totalOrders} trend="All statuses in range" />
       </div>
 
-      <div className="dashboard-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 30, marginBottom: 30 }}>
+      <div className="dashboard-row cols-wide-2-1">
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">

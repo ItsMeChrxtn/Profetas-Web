@@ -88,7 +88,7 @@ export default function Settings() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }}>
               <div className="form-group">
                 <label>First Name</label>
                 <input
@@ -219,7 +219,7 @@ export default function Settings() {
                 onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }}>
               <div className="form-group">
                 <label>New Password</label>
                 <input

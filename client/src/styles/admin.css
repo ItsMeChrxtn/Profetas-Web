@@ -180,6 +180,7 @@ body {
 /* Main Content */
 .main-content {
     flex: 1;
+    min-width: 0;
     margin-left: 280px;
     padding: 30px 40px;
     background-image: url('https://www.transparenttextures.com/patterns/leaf.png');
@@ -518,10 +519,19 @@ body {
     color: var(--primary-green);
 }
 
+.dashboard-row {
+    display: grid;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+.dashboard-row.cols-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.dashboard-row.cols-wide-left { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.dashboard-row.cols-wide-2-1 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+
 /* Stats Cards Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -806,7 +816,7 @@ tr:last-child td {
 /* Responsive */
 @media (max-width: 1200px) {
     .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -824,15 +834,30 @@ tr:last-child td {
         display: block;
     }
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dashboard-row.cols-even,
+    .dashboard-row.cols-wide-left,
+    .dashboard-row.cols-wide-2-1 {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
 @media (max-width: 576px) {
+    .main-content {
+        padding: 20px 16px;
+    }
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
     .header-search {
+        display: none;
+    }
+    .header-right {
+        gap: 12px;
+    }
+    .user-name,
+    .profile-info .fa-chevron-down {
         display: none;
     }
     .page-header-row {
