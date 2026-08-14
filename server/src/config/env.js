@@ -26,6 +26,7 @@ export const env = {
   lalamoveServiceType: process.env.LALAMOVE_SERVICE_TYPE || 'MOTORCYCLE',
   lalamoveSenderName: process.env.LALAMOVE_SENDER_NAME || 'Profetas Farm',
   lalamoveSenderPhone: process.env.LALAMOVE_SENDER_PHONE || null,
+  lalamoveWebhookUrl: process.env.LALAMOVE_WEBHOOK_URL || null,
 };
 
 export const isProduction = env.nodeEnv === 'production';

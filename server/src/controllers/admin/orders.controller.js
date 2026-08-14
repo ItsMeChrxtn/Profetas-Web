@@ -1,7 +1,7 @@
 import { Order, ORDER_STATUS_VALUES } from '../../models/index.js';
 import { HttpError } from '../../utils/httpError.js';
 import { appEvents } from '../../utils/eventBus.js';
-import { getLalamoveQuotation, placeLalamoveOrder } from '../../utils/lalamoveClient.js';
+import { getLalamoveQuotation, placeLalamoveOrder, cancelLalamoveOrder } from '../../utils/lalamoveClient.js';
 import { env } from '../../config/env.js';
 
 const PER_PAGE = 15;
@@ -115,13 +115,40 @@ export async function bookCourier(req, res) {
   order.trackingNumber = lalamoveOrder.orderId;
   order.lalamoveShareLink = lalamoveOrder.shareLink || null;
   order.lalamoveQuotedPrice = quotation.priceBreakdown?.total ? Number(quotation.priceBreakdown.total) : null;
-  if (['Pending', 'Confirmed'].includes(order.status)) {
-    order.status = 'Processing';
+  if (['Pending', 'Confirmed', 'Processing'].includes(order.status)) {
+    order.status = 'Shipped';
   }
   await order.save();
 
   appEvents.emit('order:updated', {
     customerId: order.customer._id,
+    _id: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    trackingNumber: order.trackingNumber,
+  });
+
+  res.json({ success: true, order });
+}
+
+export async function cancelCourier(req, res) {
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new HttpError(404, 'Order not found.');
+  if (!order.trackingNumber) throw new HttpError(400, 'This order has no courier booking to cancel.');
+  if (order.status === 'Completed') {
+    throw new HttpError(400, 'This order has already been delivered and can no longer be cancelled.');
+  }
+
+  await cancelLalamoveOrder(order.trackingNumber);
+
+  order.trackingNumber = null;
+  order.lalamoveShareLink = null;
+  order.lalamoveQuotedPrice = null;
+  if (order.status === 'Shipped') order.status = 'Confirmed';
+  await order.save();
+
+  appEvents.emit('order:updated', {
+    customerId: order.customer,
     _id: order._id,
     orderNumber: order.orderNumber,
     status: order.status,

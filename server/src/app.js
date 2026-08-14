@@ -29,13 +29,16 @@ import { adminSettingsRouter } from './routes/admin/settings.routes.js';
 import { adminEducationRouter } from './routes/admin/education.routes.js';
 import { adminFarmVisitsRouter } from './routes/admin/farmVisits.routes.js';
 import { adminWholesaleRouter } from './routes/admin/wholesale.routes.js';
+import { webhooksRouter } from './routes/webhooks.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const app = express();
 
 app.use(cors({ origin: env.clientUrl, credentials: true }));
-app.use(express.json());
+// Keeps the raw bytes around (req.rawBody) so incoming webhooks can be signature-verified
+// against the exact payload sent, not a re-serialized (and possibly differently-ordered) copy.
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan(isProduction ? 'combined' : 'dev'));
@@ -73,6 +76,7 @@ app.use('/api/admin/settings', adminSettingsRouter);
 app.use('/api/admin/education-posts', adminEducationRouter);
 app.use('/api/admin/farm-visits', adminFarmVisitsRouter);
 app.use('/api/admin/wholesale-inquiries', adminWholesaleRouter);
+app.use('/api/webhooks', webhooksRouter);
 
 // Only relevant for a single-service deploy (this Express app also serving the
 // built client). When the client is deployed separately (e.g. Vercel), the

@@ -22,7 +22,9 @@ adminNotificationsRouter.get('/stream', (req, res) => {
 
   send('ready', { ok: true });
 
-  const forwardedEvents = ['order:created', 'wholesale:created', 'farmvisit:created', 'product:lowstock'];
+  // order:updated carries no bell notification - admin pages (e.g. Delivery Booking)
+  // listen for it so they re-render when a Lalamove webhook moves an order along.
+  const forwardedEvents = ['order:created', 'order:updated', 'wholesale:created', 'farmvisit:created', 'product:lowstock'];
   const listeners = forwardedEvents.map((event) => {
     const listener = (data) => send(event, data);
     appEvents.on(event, listener);

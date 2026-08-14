@@ -5,6 +5,8 @@ import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, formatDate, formatTime } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
+import { confirmAction } from '../../utils/confirm.js';
+import { API_BASE } from '../../utils/apiBase.js';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
 
@@ -53,6 +55,7 @@ export default function DeliveryBooking() {
   const [statusValue, setStatusValue] = useState('');
   const [updating, setUpdating] = useState(false);
   const [booking, setBooking] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   function load() {
     if (!orderId) return;
@@ -63,6 +66,17 @@ export default function DeliveryBooking() {
   }
 
   useEffect(load, [orderId]);
+
+  // A Lalamove webhook can move this order (e.g. to Completed) while the page is
+  // open, so re-pull it live - that's what retires the Cancel Booking button.
+  useEffect(() => {
+    if (!orderId) return undefined;
+    const source = new EventSource(`${API_BASE}/api/admin/notifications/stream`, { withCredentials: true });
+    source.addEventListener('order:updated', (event) => {
+      if (JSON.parse(event.data)._id === orderId) load();
+    });
+    return () => source.close();
+  }, [orderId]);
 
   async function handleUpdateStatus(e) {
     e.preventDefault();
@@ -88,6 +102,24 @@ export default function DeliveryBooking() {
       showToast('error', err.message);
     } finally {
       setBooking(false);
+    }
+  }
+
+  async function handleCancelCourier() {
+    const ok = await confirmAction('Cancel this Lalamove booking?', {
+      confirmButtonText: 'Yes, cancel it',
+    });
+    if (!ok) return;
+
+    setCancelling(true);
+    try {
+      await adminOrdersApi.cancelCourier(orderId);
+      showToast('success', 'Lalamove booking cancelled.');
+      load();
+    } catch (err) {
+      showToast('error', err.message);
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -296,6 +328,20 @@ export default function DeliveryBooking() {
                         </a>
                       )}
                     </div>
+                  ) : null}
+
+                  {order.trackingNumber ? (
+                    // A delivered order can't be recalled - Lalamove rejects it too.
+                    order.status !== 'Completed' && (
+                      <button
+                        className="btn-book"
+                        style={{ background: '#DC2626', marginTop: 15 }}
+                        onClick={handleCancelCourier}
+                        disabled={cancelling}
+                      >
+                        <i className="fas fa-times-circle" /> {cancelling ? 'Cancelling...' : 'Cancel Booking'}
+                      </button>
+                    )
                   ) : (
                     <button className="btn-book" onClick={handleBookCourier} disabled={booking}>
                       <i className="fas fa-truck" /> {booking ? 'Booking...' : 'Book with Lalamove'}

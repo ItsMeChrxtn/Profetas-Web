@@ -4,6 +4,7 @@ import { ordersApi } from '../../api/orders.js';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, formatDate, formatTime, orderNumberLabel } from '../../utils/dateFormat.js';
 import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
+import { API_BASE } from '../../utils/apiBase.js';
 
 const STATUS_STEPS = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed'];
 const STEP_ICONS = { Pending: 'fa-clock', Confirmed: 'fa-check', Processing: 'fa-cog', Shipped: 'fa-truck', Completed: 'fa-box-open' };
@@ -22,6 +23,15 @@ export default function TrackOrder() {
 
   useEffect(() => {
     ordersApi.mine().then((data) => setOrders(data.orders));
+  }, []);
+
+  // Re-pull the list whenever the admin updates one of this customer's orders
+  // (status change, courier booked/cancelled) so this page updates live, no reload needed.
+  useEffect(() => {
+    const source = new EventSource(`${API_BASE}/api/notifications/stream`, { withCredentials: true });
+    const refresh = () => ordersApi.mine().then((data) => setOrders(data.orders));
+    source.addEventListener('order:updated', refresh);
+    return () => source.close();
   }, []);
 
   if (!orders) return null;
