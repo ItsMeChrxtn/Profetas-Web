@@ -8,10 +8,12 @@ import { Sidebar } from '../components/admin/Sidebar.jsx';
 import { TopHeader } from '../components/admin/Header.jsx';
 
 export function AdminLayout() {
-  useStylesheets([adminCssHref]);
+  const stylesReady = useStylesheets([adminCssHref]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const notifications = useAdminNotifications(user?.role === 'admin');
+
+  if (!stylesReady) return null;
 
   return (
     <div className="admin-container">

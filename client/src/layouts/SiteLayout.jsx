@@ -27,7 +27,8 @@ function SiteLayoutInner() {
 }
 
 export function SiteLayout() {
-  useStylesheets([bootstrapHref, siteCssHref]);
+  const stylesReady = useStylesheets([bootstrapHref, siteCssHref]);
+  if (!stylesReady) return null;
   return (
     <SiteSettingsProvider>
       <SiteLayoutInner />
