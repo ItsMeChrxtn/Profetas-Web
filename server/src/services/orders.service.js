@@ -1,12 +1,9 @@
 import mongoose from 'mongoose';
-import { Order } from '../models/index.js';
+import { Order, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../utils/httpError.js';
 import { decrementStockOrThrow } from './stock.service.js';
 import { appEvents } from '../utils/eventBus.js';
-
-// Hardcoded flat fee, matching the original checkout.php - not a real courier API quote.
-const DELIVERY_FEES = { Lalamove: 150.0, 'Self-Pickup': 0.0 };
 
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -24,13 +21,14 @@ function stockStatusFor(qty, threshold) {
  * insufficient), then inserts the order with server-computed totals. The
  * client's cart is only ever treated as a set of {productId, quantity}
  * intents - prices/names/totals are always re-derived here from live
- * Product data, never trusted from the request.
+ * Product data, never trusted from the request. deliveryFee is server-derived
+ * too (a live Lalamove quote, or 0 for pickup).
  */
-export async function placeOrder({ customerId, items, deliveryMethod, deliveryDetails, payment }) {
+export async function placeOrder({ customerId, items, deliveryMethod, deliveryFee, deliveryDetails, payment }) {
   if (!Array.isArray(items) || items.length === 0) {
     throw new HttpError(400, 'Your cart is empty.');
   }
-  if (!DELIVERY_FEES.hasOwnProperty(deliveryMethod)) {
+  if (!DELIVERY_METHOD_VALUES.includes(deliveryMethod)) {
     throw new HttpError(400, 'Please choose a valid delivery method.');
   }
 
@@ -76,7 +74,6 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryDe
         }
       }
 
-      const deliveryFee = DELIVERY_FEES[deliveryMethod];
       const totalAmount = round2(subtotal + deliveryFee);
       const orderNumber = await nextSequence('orderNumber', session);
 

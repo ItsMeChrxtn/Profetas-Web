@@ -10,7 +10,7 @@ import { ReceiptUploader } from '../../components/site/ReceiptUploader.jsx';
 import { showToast } from '../../utils/toast.js';
 import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 
-const DELIVERY_FEES = { Lalamove: 150.0, 'Self-Pickup': 0.0 };
+const DELIVERY_METHODS = ['Lalamove', 'Self-Pickup'];
 
 export default function Checkout() {
   const settings = useSiteSettings();
@@ -34,6 +34,31 @@ export default function Checkout() {
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  // Live Lalamove price for the pinned location: { fee, loading, error }.
+  const [quote, setQuote] = useState({ fee: null, loading: false, error: null });
+  const [quoteNonce, setQuoteNonce] = useState(0);
+
+  useEffect(() => {
+    if (deliveryMethod !== 'Lalamove' || !position) {
+      setQuote({ fee: null, loading: false, error: null });
+      return;
+    }
+    let cancelled = false;
+    setQuote({ fee: null, loading: true, error: null });
+    // Debounced so dragging/clicking around the map doesn't fire a quote per click.
+    const timer = setTimeout(() => {
+      ordersApi
+        .deliveryQuote({ lat: position[0], lng: position[1], address: deliveryAddress })
+        .then((data) => !cancelled && setQuote({ fee: data.fee, loading: false, error: null }))
+        .catch((err) => !cancelled && setQuote({ fee: null, loading: false, error: err.message }));
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // Address text is only a label for Lalamove; the price depends on the pin.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryMethod, position, quoteNonce]);
 
   useEffect(() => {
     const requested = asItemsArray();
@@ -125,6 +150,10 @@ export default function Checkout() {
       alert('Please pin your delivery location on the map.');
       return;
     }
+    if (deliveryMethod === 'Lalamove' && quote.fee == null) {
+      setErrors([quote.error || 'Please wait while we calculate your delivery fee.']);
+      return;
+    }
 
     const formData = new FormData();
     formData.append('items', JSON.stringify(asItemsArray()));
@@ -137,6 +166,7 @@ export default function Checkout() {
       formData.append('deliveryLandmark', deliveryLandmark);
       formData.append('deliveryLat', position[0]);
       formData.append('deliveryLng', position[1]);
+      formData.append('expectedDeliveryFee', quote.fee);
     }
     formData.append('referenceNumber', referenceNumber);
     if (receiptFile) formData.append('receiptImage', receiptFile);
@@ -149,6 +179,8 @@ export default function Checkout() {
       navigate(`/track-order?highlight=${data.order.orderNumber}`);
     } catch (err) {
       setErrors([err.message]);
+      // 409 = Lalamove's price moved since we showed it; fetch the new one.
+      if (err.status === 409) setQuoteNonce((n) => n + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSubmitting(false);
@@ -158,7 +190,17 @@ export default function Checkout() {
   if (!items) return null;
 
   const isPickup = deliveryMethod === 'Self-Pickup';
-  const fee = deliveryMethod ? DELIVERY_FEES[deliveryMethod] || 0 : 0;
+  const isLalamove = deliveryMethod === 'Lalamove';
+  const fee = isLalamove ? quote.fee ?? 0 : 0;
+  const feeReady = !isLalamove || quote.fee != null;
+
+  let lalamoveFeeLabel = 'Based on distance';
+  if (quote.loading) lalamoveFeeLabel = 'Calculating fee...';
+  else if (quote.fee != null) lalamoveFeeLabel = `${peso(quote.fee)} fee`;
+
+  let summaryFeeLabel = peso(fee);
+  if (isLalamove && quote.loading) summaryFeeLabel = 'Calculating...';
+  else if (isLalamove && quote.fee == null) summaryFeeLabel = position ? 'Unavailable' : 'Pin location';
 
   return (
     <div className="container" style={{ paddingTop: 30, paddingBottom: 60 }}>
@@ -182,7 +224,7 @@ export default function Checkout() {
                 <i className="fas fa-truck me-2" />Delivery Method
               </h5>
               <div className="row g-3">
-                {Object.entries(DELIVERY_FEES).map(([method, methodFee]) => (
+                {DELIVERY_METHODS.map((method) => (
                   <div className="col-md-6" key={method}>
                     <label className="border rounded-3 p-3 d-flex align-items-center gap-2 w-100" style={{ cursor: 'pointer' }}>
                       <input
@@ -196,7 +238,7 @@ export default function Checkout() {
                       />
                       <span className="flex-grow-1">
                         <span className="d-block fw-bold">{method}</span>
-                        <span className="small text-muted">{methodFee > 0 ? `${peso(methodFee)} fee` : 'No extra fee'}</span>
+                        <span className="small text-muted">{method === 'Lalamove' ? lalamoveFeeLabel : 'No extra fee'}</span>
                       </span>
                     </label>
                   </div>
@@ -266,6 +308,14 @@ export default function Checkout() {
                 <div className="small text-muted">
                   {position ? `Pinned: ${position[0].toFixed(5)}, ${position[1].toFixed(5)}` : 'No location pinned yet.'}
                 </div>
+                {quote.error && (
+                  <div className="small text-danger mt-1">
+                    {quote.error}{' '}
+                    <button type="button" className="btn btn-link btn-sm p-0 align-baseline" onClick={() => setQuoteNonce((n) => n + 1)}>
+                      Try again
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -309,7 +359,7 @@ export default function Checkout() {
               </div>
               <div className="d-flex justify-content-between mb-2">
                 <span className="text-muted">Delivery Fee</span>
-                <span>{peso(fee)}</span>
+                <span>{summaryFeeLabel}</span>
               </div>
               <hr />
               <div className="d-flex justify-content-between mb-3 fs-5">
@@ -318,7 +368,7 @@ export default function Checkout() {
                   {peso(subtotal + fee)}
                 </span>
               </div>
-              <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting}>
+              <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting || !feeReady}>
                 {submitting ? 'Placing Order...' : 'Place Order'}
               </button>
             </div>

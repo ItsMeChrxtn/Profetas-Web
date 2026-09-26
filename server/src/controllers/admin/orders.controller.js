@@ -3,12 +3,9 @@ import { HttpError } from '../../utils/httpError.js';
 import { appEvents } from '../../utils/eventBus.js';
 import { getLalamoveQuotation, placeLalamoveOrder, cancelLalamoveOrder } from '../../utils/lalamoveClient.js';
 import { env } from '../../config/env.js';
+import { FARM_PICKUP } from '../../services/delivery.service.js';
 
 const PER_PAGE = 15;
-
-// Must match client/src/components/site/DeliveryMap.jsx's FARM_CENTER - the
-// farm is the pickup point for every Lalamove booking.
-const FARM_PICKUP = { lat: 14.3585, lng: 120.8155, address: 'Profetas Integrated Farm, Tres Cruces, Tanza, Cavite' };
 
 export async function listOrders(req, res) {
   const { q, status } = req.query;
