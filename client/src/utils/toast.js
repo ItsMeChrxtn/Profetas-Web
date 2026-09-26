@@ -4,10 +4,9 @@ export function showToast(type, message) {
   Swal.fire({
     icon: type,
     title: message,
-    toast: true,
-    position: 'top-end',
+    position: 'center',
     showConfirmButton: false,
-    timer: 3500,
+    timer: 2500,
     timerProgressBar: true,
   });
 }

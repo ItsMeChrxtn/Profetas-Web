@@ -22,7 +22,7 @@ export const env = {
   lalamoveApiKey: process.env.LALAMOVE_API_KEY || null,
   lalamoveApiSecret: process.env.LALAMOVE_API_SECRET || null,
   lalamoveEnv: process.env.LALAMOVE_ENV || 'sandbox',
-  lalamoveMarket: process.env.LALAMOVE_MARKET || 'PH_MNL',
+  lalamoveMarket: process.env.LALAMOVE_MARKET || 'PH',
   lalamoveServiceType: process.env.LALAMOVE_SERVICE_TYPE || 'MOTORCYCLE',
   lalamoveSenderName: process.env.LALAMOVE_SENDER_NAME || 'Profetas Farm',
   lalamoveSenderPhone: process.env.LALAMOVE_SENDER_PHONE || null,

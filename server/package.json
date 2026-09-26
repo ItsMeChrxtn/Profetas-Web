@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed": "node seed/seed.js",
-    "register-webhook": "node scripts/register-lalamove-webhook.js"
+    "register-webhook": "node scripts/register-lalamove-webhook.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -1,0 +1,76 @@
+.mushroom-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2000; /* above Bootstrap modals and SweetAlert */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 30, 20, 0.55);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.mushroom-loader.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mushroom-loader__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 40px 22px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.mushroom-loader__mushroom {
+  animation: mushroom-bounce 0.7s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
+  transform-origin: bottom center;
+}
+
+.mushroom-loader__shadow {
+  width: 70px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  animation: mushroom-shadow 0.7s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
+}
+
+.mushroom-loader__text {
+  margin: 14px 0 0;
+  font-weight: 600;
+  color: #1B3C26;
+  letter-spacing: 0.5px;
+}
+
+.mushroom-loader__text span {
+  animation: mushroom-dots 1.2s infinite;
+}
+.mushroom-loader__text span:nth-child(2) { animation-delay: 0.2s; }
+.mushroom-loader__text span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes mushroom-bounce {
+  0%   { transform: translateY(0) scale(1.12, 0.88); }
+  25%  { transform: translateY(-8px) scale(0.95, 1.05); }
+  100% { transform: translateY(-50px) scale(1, 1); }
+}
+
+@keyframes mushroom-shadow {
+  0%   { transform: scale(1); opacity: 0.35; }
+  100% { transform: scale(0.5); opacity: 0.12; }
+}
+
+@keyframes mushroom-dots {
+  0%, 100% { opacity: 0.2; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mushroom-loader__mushroom,
+  .mushroom-loader__shadow { animation-duration: 1.6s; }
+}
