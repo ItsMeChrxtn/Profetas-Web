@@ -1,5 +1,6 @@
 import { Order, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { placeOrder } from '../services/orders.service.js';
+import { quoteLalamoveFee } from '../services/delivery.service.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../middleware/upload.js';
 import { HttpError } from '../utils/httpError.js';
 import { appEvents } from '../utils/eventBus.js';
@@ -58,10 +59,30 @@ export async function createOrder(req, res, next) {
 
     const deliveryDetails = validateAndBuildDeliveryDetails(req.body);
 
+    // Re-quote server-side rather than trusting the fee the browser showed. The
+    // customer already sent GCash for the total they saw, so refuse the order if
+    // Lalamove's price moved in between instead of silently charging a new total.
+    let deliveryFee = 0;
+    if (req.body.deliveryMethod === 'Lalamove') {
+      deliveryFee = await quoteLalamoveFee({
+        lat: deliveryDetails.deliveryLat,
+        lng: deliveryDetails.deliveryLng,
+        address: deliveryDetails.deliveryAddress,
+      });
+      const expected = Number(req.body.expectedDeliveryFee);
+      if (Number.isFinite(expected) && Math.abs(expected - deliveryFee) >= 0.01) {
+        throw new HttpError(
+          409,
+          `The Lalamove delivery fee changed to ₱${deliveryFee.toFixed(2)}. Please review your new total before placing the order.`
+        );
+      }
+    }
+
     const order = await placeOrder({
       customerId: req.user.id,
       items,
       deliveryMethod: req.body.deliveryMethod,
+      deliveryFee,
       deliveryDetails,
       payment: { referenceNumber: referenceNumber?.trim() || null, receiptImage: receiptPublicPath },
     });
@@ -79,6 +100,15 @@ export async function createOrder(req, res, next) {
     if (receiptPublicPath) await deleteUploadedFile(receiptPublicPath);
     next(err);
   }
+}
+
+export async function getDeliveryQuote(req, res) {
+  const fee = await quoteLalamoveFee({
+    lat: parseFloat(req.body.lat),
+    lng: parseFloat(req.body.lng),
+    address: req.body.address,
+  });
+  res.json({ success: true, fee });
 }
 
 export async function getMyOrders(req, res) {
