@@ -21,6 +21,8 @@ import Education from './pages/site/Education.jsx';
 import EducationPost from './pages/site/EducationPost.jsx';
 import Loyalty from './pages/site/Loyalty.jsx';
 import Account from './pages/site/Account.jsx';
+import ForgotPassword from './pages/site/ForgotPassword.jsx';
+import Faq from './pages/site/Faq.jsx';
 
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import AdminProducts from './pages/admin/Products.jsx';
@@ -43,19 +45,22 @@ export default function App() {
           <Routes>
             <Route element={<SiteLayout />}>
               <Route index element={<Home />} />
-              <Route path="shop" element={<Shop />} />
               <Route path="product/:id" element={<ProductDetail />} />
-              <Route path="cart" element={<Cart />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
-              <Route path="wholesale" element={<Wholesale />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
               <Route path="farm-visit" element={<FarmVisit />} />
               <Route path="education" element={<Education />} />
               <Route path="education/:id" element={<EducationPost />} />
+              <Route path="faq" element={<Faq />} />
+              {/* Guests look up one order by number + email; logged-in users see all theirs. */}
+              <Route path="track-order" element={<TrackOrder />} />
 
               <Route element={<RequireAuth />}>
+                <Route path="shop" element={<Shop />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="wholesale" element={<Wholesale />} />
                 <Route path="checkout" element={<Checkout />} />
-                <Route path="track-order" element={<TrackOrder />} />
                 <Route path="my-farm-visits" element={<MyFarmVisits />} />
                 <Route path="loyalty" element={<Loyalty />} />
                 <Route path="account" element={<Account />} />

@@ -25,6 +25,7 @@ export function Footer({ facebookUrl, shopeeUrl }) {
             <p><Link to="/education">Learn</Link></p>
             <p><Link to="/farm-visit">Visit the Farm</Link></p>
             <p><Link to="/track-order">Track Order</Link></p>
+            <p><Link to="/faq">FAQs</Link></p>
           </div>
           <div className="col-lg-4 col-md-4">
             <h5>Connect With Us</h5>

@@ -111,6 +111,40 @@ export async function getDeliveryQuote(req, res) {
   res.json({ success: true, fee });
 }
 
+/**
+ * Guest order lookup. Order numbers are sequential, so the email on the
+ * account is required too - otherwise anyone could walk #1, #2, #3... and see
+ * every order. Only status-level details are returned (no address or receipt).
+ */
+export async function trackOrderPublic(req, res) {
+  const orderNumber = parseInt(String(req.query.orderNumber || '').replace(/\D/g, ''), 10);
+  const email = req.query.email?.trim().toLowerCase();
+  const notFound = 'No order matches that order number and email.';
+
+  if (!orderNumber || !email) {
+    throw new HttpError(400, 'Please enter your order number and the email you ordered with.');
+  }
+
+  const order = await Order.findOne({ orderNumber }).populate('customer', 'email');
+  if (!order || order.customer?.email !== email) throw new HttpError(404, notFound);
+
+  res.json({
+    success: true,
+    order: {
+      orderNumber: order.orderNumber,
+      orderDate: order.orderDate,
+      status: order.status,
+      deliveryMethod: order.deliveryMethod,
+      pickupDate: order.pickupDate,
+      pickupTime: order.pickupTime,
+      items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
+      totalAmount: order.totalAmount,
+      paymentStatus: order.payment?.status,
+      lalamoveShareLink: order.lalamoveShareLink,
+    },
+  });
+}
+
 export async function getMyOrders(req, res) {
   const orders = await Order.find({ customer: req.user.id }).sort({ orderDate: -1 });
   res.json({ success: true, orders });

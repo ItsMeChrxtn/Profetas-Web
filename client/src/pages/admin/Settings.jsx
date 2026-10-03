@@ -78,7 +78,7 @@ export default function Settings() {
           <form onSubmit={handleProfileSubmit}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 25, marginBottom: 30 }}>
               <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1B3C26&color=fff&size=100`}
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7B1E2B&color=fff&size=100`}
                 style={{ width: 100, height: 100, borderRadius: '50%' }}
                 alt={displayName}
               />

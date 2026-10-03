@@ -4,6 +4,7 @@ const WHOLESALE_STATUSES = ['New', 'Quoted', 'Closed'];
 
 const wholesaleInquirySchema = new mongoose.Schema(
   {
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     name: { type: String, required: true, trim: true, maxlength: 100 },
     contactNumber: { type: String, required: true, trim: true, maxlength: 20 },
     location: { type: String, required: true, trim: true, maxlength: 255 },

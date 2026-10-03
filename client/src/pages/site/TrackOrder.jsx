@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ordersApi } from '../../api/orders.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, formatDate, formatTime, orderNumberLabel } from '../../utils/dateFormat.js';
 import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
@@ -9,6 +10,42 @@ import { API_BASE } from '../../utils/apiBase.js';
 const STATUS_STEPS = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed'];
 const STEP_ICONS = { Pending: 'fa-clock', Confirmed: 'fa-check', Processing: 'fa-cog', Shipped: 'fa-truck', Completed: 'fa-box-open' };
 
+// Plain-language line under the tracker, e.g. so a guest can tell if it is being prepared yet.
+const STATUS_MESSAGES = {
+  Pending: 'We received your order and are verifying your GCash payment.',
+  Confirmed: 'Payment verified - your order is confirmed.',
+  Processing: 'Your order is being prepared.',
+  Shipped: 'Your order is on the way / ready for pickup.',
+  Completed: 'Your order has been delivered / picked up.',
+  Cancelled: 'This order was cancelled.',
+};
+
+function StatusTracker({ status }) {
+  if (status === 'Cancelled') {
+    return (
+      <div className="status-pill status-cancelled mb-3">
+        <i className="fas fa-times-circle" /> Order Cancelled
+      </div>
+    );
+  }
+  const currentIndex = STATUS_STEPS.indexOf(status);
+  return (
+    <div className="tracker">
+      {STATUS_STEPS.map((step, i) => {
+        const stateClass = i < currentIndex ? 'done' : i === currentIndex ? 'current done' : '';
+        return (
+          <div className={`tracker-step ${stateClass}`} key={step}>
+            <div className="tracker-dot">
+              <i className={`fas ${STEP_ICONS[step]}`} />
+            </div>
+            <div className="tracker-label">{step}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function paymentPillClass(payment) {
   if (!payment) return 'status-pending';
   if (payment.status === 'Verified') return 'status-completed';
@@ -16,7 +53,7 @@ function paymentPillClass(payment) {
   return 'status-pending';
 }
 
-export default function TrackOrder() {
+function MyOrders() {
   const [orders, setOrders] = useState(null);
   const [searchParams] = useSearchParams();
   const highlight = searchParams.get('highlight');
@@ -52,7 +89,6 @@ export default function TrackOrder() {
       )}
 
       {orders.map((order) => {
-        const currentIndex = STATUS_STEPS.indexOf(order.status);
         const isHighlighted = String(order.orderNumber) === highlight;
 
         return (
@@ -71,25 +107,8 @@ export default function TrackOrder() {
               </span>
             </div>
 
-            {order.status === 'Cancelled' ? (
-              <div className="status-pill status-cancelled mb-3">
-                <i className="fas fa-times-circle" /> Order Cancelled
-              </div>
-            ) : (
-              <div className="tracker">
-                {STATUS_STEPS.map((step, i) => {
-                  const stateClass = i < currentIndex ? 'done' : i === currentIndex ? 'current done' : '';
-                  return (
-                    <div className={`tracker-step ${stateClass}`} key={step}>
-                      <div className="tracker-dot">
-                        <i className={`fas ${STEP_ICONS[step]}`} />
-                      </div>
-                      <div className="tracker-label">{step}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <StatusTracker status={order.status} />
+            <p className="small text-muted mb-0">{STATUS_MESSAGES[order.status]}</p>
 
             <div className="row g-3 mt-2">
               <div className="col-md-6">
@@ -151,4 +170,117 @@ export default function TrackOrder() {
       })}
     </div>
   );
+}
+
+/** No login needed: look up one order by its number + the email it was placed with. */
+function GuestTracker() {
+  const [searchParams] = useSearchParams();
+  const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '');
+  const [email, setEmail] = useState('');
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState('');
+  const [searching, setSearching] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    setOrder(null);
+    setSearching(true);
+    try {
+      const data = await ordersApi.track({ orderNumber, email });
+      setOrder(data.order);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  return (
+    <div className="container" style={{ maxWidth: 760, paddingTop: 30, paddingBottom: 60 }}>
+      <h2 className="section-title">Track Your Order</h2>
+      <p className="section-subtitle">
+        Enter your order number and the email you ordered with &mdash; no login needed. Or{' '}
+        <Link to="/login" state={{ from: { pathname: '/track-order' } }}>
+          log in
+        </Link>{' '}
+        to see all your orders.
+      </p>
+
+      <form className="farm-card mb-4" onSubmit={handleSubmit}>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="row g-3 align-items-end">
+          <div className="col-md-4">
+            <label className="form-label">Order Number</label>
+            <input
+              className="form-control"
+              placeholder="e.g. 000123"
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value)}
+              required
+            />
+          </div>
+          <div className="col-md-5">
+            <label className="form-label">Email Address</label>
+            <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="col-md-3">
+            <button type="submit" className="btn btn-farm-primary w-100" disabled={searching}>
+              <i className={`fas ${searching ? 'fa-spinner fa-spin' : 'fa-search'} me-1`} />
+              {searching ? 'Searching...' : 'Track'}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {order && (
+        <div className="farm-card">
+          <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div>
+              <span className="fw-bold fs-5">Order {orderNumberLabel(order.orderNumber)}</span>
+              <span className="text-muted small ms-2">{formatDateTime(order.orderDate)}</span>
+            </div>
+            <span className="fw-bold" style={{ color: 'var(--primary-green)' }}>
+              {peso(order.totalAmount)}
+            </span>
+          </div>
+
+          <StatusTracker status={order.status} />
+          <p className="fw-bold mb-3">{STATUS_MESSAGES[order.status]}</p>
+
+          <div className="row g-3">
+            <div className="col-md-6">
+              <div className="small text-muted mb-1">Items</div>
+              {order.items.map((item, i) => (
+                <div className="small" key={i}>
+                  {item.productName} &times; {item.quantity}
+                </div>
+              ))}
+            </div>
+            <div className="col-md-6">
+              <div className="small text-muted mb-1">Delivery</div>
+              <div className="small fw-bold">{order.deliveryMethod}</div>
+              {order.deliveryMethod === 'Self-Pickup' && order.pickupDate && (
+                <div className="small text-muted">
+                  {formatDate(order.pickupDate)} at {formatTime(order.pickupTime)}
+                </div>
+              )}
+              {order.lalamoveShareLink && (
+                <a href={order.lalamoveShareLink} target="_blank" rel="noopener noreferrer" className="small d-block mt-1">
+                  <i className="fas fa-location-arrow me-1" />
+                  Track your rider live
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function TrackOrder() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <MyOrders /> : <GuestTracker />;
 }

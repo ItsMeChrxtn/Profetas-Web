@@ -17,7 +17,7 @@ export async function downloadPdfTable({ title, headers, rows, filename }) {
     head: [headers],
     body: rows,
     startY: 32,
-    headStyles: { fillColor: [27, 60, 38] },
+    headStyles: { fillColor: [123, 30, 43] },
     styles: { fontSize: 9 },
   });
 

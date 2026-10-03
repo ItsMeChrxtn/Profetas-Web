@@ -8,7 +8,7 @@ import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDate, orderNumberLabel } from '../../utils/dateFormat.js';
 
-const PIE_COLORS = ['#1B3C26', '#F59E0B', '#EF4444'];
+const PIE_COLORS = ['#7B1E2B', '#F59E0B', '#EF4444'];
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -53,7 +53,7 @@ export default function Dashboard() {
                 <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { month: 'short', day: 'numeric' })} minTickGap={30} fontSize={11} />
                 <YAxis fontSize={11} width={50} />
                 <Tooltip formatter={(v) => peso(v)} labelFormatter={(d) => formatDate(d)} />
-                <Line type="monotone" dataKey="revenue" stroke="#1B3C26" fill="rgba(27,60,38,0.1)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="revenue" stroke="#7B1E2B" fill="rgba(123,30,43,0.1)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

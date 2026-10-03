@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { PasswordInput } from '../../components/site/PasswordInput.jsx';
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -50,8 +51,11 @@ export default function Login() {
             <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
           </div>
           <div className="mb-4">
-            <label className="form-label">Password</label>
-            <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <div className="d-flex justify-content-between align-items-baseline">
+              <label className="form-label">Password</label>
+              <Link to="/forgot-password" className="small">Forgot password?</Link>
+            </div>
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting}>
             {submitting ? 'Logging In...' : 'Log In'}

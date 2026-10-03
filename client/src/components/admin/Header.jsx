@@ -84,7 +84,7 @@ export function TopHeader({ onToggleSidebar, notifications = emptyNotifications 
         <div className="user-profile">
           <div className="profile-info" onClick={() => setProfileOpen((v) => !v)}>
             <div className="avatar">
-              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1B3C26&color=fff`} alt={name} />
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7B1E2B&color=fff`} alt={name} />
             </div>
             <span className="user-name">{name}</span>
             <i className="fas fa-chevron-down" />

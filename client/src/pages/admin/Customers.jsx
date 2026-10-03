@@ -131,7 +131,7 @@ export default function Customers() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div
-                          style={{ width: 35, height: 35, background: '#1B3C26', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}
+                          style={{ width: 35, height: 35, background: '#7B1E2B', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}
                         >
                           {customer.firstName[0]?.toUpperCase()}
                         </div>
