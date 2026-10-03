@@ -43,8 +43,23 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // Password reset logs the user straight in.
+  const resetPassword = useCallback(async (payload) => {
+    const data = await authApi.resetPassword(payload);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
+  const updateProfile = useCallback(async (payload) => {
+    const data = await authApi.updateProfile(payload);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyRegistrationOtp, resendRegistrationOtp, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, verifyRegistrationOtp, resendRegistrationOtp, logout, resetPassword, updateProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

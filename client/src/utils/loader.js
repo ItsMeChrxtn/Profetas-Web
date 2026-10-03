@@ -13,9 +13,9 @@ const MUSHROOM_SVG = `
   <circle cx="58" cy="52" r="5" fill="#fff"/>
   <circle cx="24" cy="54" r="4" fill="#fff"/>
   <path d="M40 70 L80 70 Q84 96 76 108 Q60 114 44 108 Q36 96 40 70 Z" fill="#f5e6c8"/>
-  <circle cx="52" cy="86" r="3.5" fill="#1B3C26"/>
-  <circle cx="68" cy="86" r="3.5" fill="#1B3C26"/>
-  <path d="M54 95 Q60 100 66 95" stroke="#1B3C26" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="52" cy="86" r="3.5" fill="#7B1E2B"/>
+  <circle cx="68" cy="86" r="3.5" fill="#7B1E2B"/>
+  <path d="M54 95 Q60 100 66 95" stroke="#7B1E2B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 </svg>`;
 
 let overlay = null;

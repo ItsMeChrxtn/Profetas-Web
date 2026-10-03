@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { useCart } from '../../context/CartContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { peso } from '../../utils/peso.js';
 import { stockStatus, StockBadge } from '../../components/site/StockBadge.jsx';
 import { QuantityStepper } from '../../components/site/QuantityStepper.jsx';
@@ -12,6 +13,8 @@ import { mediaUrl } from '../../utils/mediaUrl.js';
 export default function ProductDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const location = useLocation();
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [notFound, setNotFound] = useState(false);
@@ -104,7 +107,11 @@ export default function ProductDetail() {
             {product.description}
           </p>
 
-          {inStock ? (
+          {!user ? (
+            <Link to="/login" state={{ from: location }} className="btn btn-farm-primary mt-4">
+              <i className="fas fa-sign-in-alt me-2" />Log in to order
+            </Link>
+          ) : inStock ? (
             <div className="d-flex align-items-center gap-3 mt-4">
               <QuantityStepper value={qty} max={product.stockQty} onChange={setQty} />
               <button className="btn btn-farm-primary flex-grow-1" disabled={adding} onClick={handleAddToCart}>

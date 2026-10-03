@@ -10,6 +10,7 @@ export async function createInquiry(req, res) {
   }
 
   const inquiry = await WholesaleInquiry.create({
+    customer: req.user.id,
     name: name.trim(),
     contactNumber: contactNumber.trim(),
     location: location.trim(),

@@ -7,4 +7,8 @@ export const authApi = {
   login: (payload) => api.post('/auth/login', payload, { loader: false }),
   logout: () => api.post('/auth/logout', null, { loader: false }),
   me: () => api.get('/auth/me'),
+  forgotPassword: (payload) => api.post('/auth/forgot-password', payload),
+  resetPassword: (payload) => api.post('/auth/reset-password', payload),
+  updateProfile: (payload) => api.patch('/auth/profile', payload),
+  changePassword: (payload) => api.patch('/auth/password', payload),
 };

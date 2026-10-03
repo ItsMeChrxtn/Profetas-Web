@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { showToast } from '../../utils/toast.js';
+import { PasswordInput, PasswordHints } from '../../components/site/PasswordInput.jsx';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -172,29 +173,23 @@ export default function Register() {
               onChange={(e) => update('contactNumber', e.target.value)}
             />
           </div>
-          <div className="row g-3 mb-4">
+          <div className="row g-3 mb-2">
             <div className="col-md-6">
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                minLength={8}
-                value={form.password}
-                onChange={(e) => update('password', e.target.value)}
-                required
-              />
+              <PasswordInput minLength={8} value={form.password} onChange={(e) => update('password', e.target.value)} required />
             </div>
             <div className="col-md-6">
               <label className="form-label">Confirm Password</label>
-              <input
-                type="password"
-                className="form-control"
+              <PasswordInput
                 minLength={8}
                 value={form.confirmPassword}
                 onChange={(e) => update('confirmPassword', e.target.value)}
                 required
               />
             </div>
+          </div>
+          <div className="mb-4">
+            <PasswordHints password={form.password} confirmPassword={form.confirmPassword} />
           </div>
           <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting}>
             {submitting ? 'Sending Code...' : 'Create Account'}

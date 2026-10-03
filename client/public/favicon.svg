@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="pfLogoGreen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#2D5A3C"/>
-      <stop offset="100%" stop-color="#123018"/>
+    <linearGradient id="pfLogoMaroon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9E2A3A"/>
+      <stop offset="100%" stop-color="#4A0F18"/>
     </linearGradient>
   </defs>
-  <circle cx="32" cy="32" r="32" fill="url(#pfLogoGreen)"/>
+  <circle cx="32" cy="32" r="32" fill="url(#pfLogoMaroon)"/>
   <path d="M14 30 C14 18 22 12 32 12 C42 12 50 18 50 30 C50 33 47.5 34 44 34 L20 34 C16.5 34 14 33 14 30 Z" fill="#F5F1E8"/>
   <path d="M25 34 L25 44 C25 48 29 50 32 50 C35 50 39 48 39 44 L39 34 Z" fill="#F5F1E8"/>
-  <circle cx="24" cy="21" r="2.2" fill="#123018"/>
-  <circle cx="33" cy="18" r="1.6" fill="#123018"/>
-  <circle cx="41" cy="23" r="2" fill="#123018"/>
+  <circle cx="24" cy="21" r="2.2" fill="#4A0F18"/>
+  <circle cx="33" cy="18" r="1.6" fill="#4A0F18"/>
+  <circle cx="41" cy="23" r="2" fill="#4A0F18"/>
 </svg>

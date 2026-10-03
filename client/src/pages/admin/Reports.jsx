@@ -6,7 +6,7 @@ import { StatCard } from '../../components/admin/StatCard.jsx';
 import { peso } from '../../utils/peso.js';
 import { todayDateString } from '../../utils/dateFormat.js';
 
-const PIE_COLORS = ['#1B3C26', '#C97B2E', '#3B82F6', '#EF4444', '#8B5CF6'];
+const PIE_COLORS = ['#7B1E2B', '#C97B2E', '#3B82F6', '#EF4444', '#8B5CF6'];
 
 function thirtyDaysAgoString() {
   return new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -71,7 +71,7 @@ export default function Reports() {
                   <XAxis dataKey="_id" fontSize={12} />
                   <YAxis fontSize={11} width={60} />
                   <Tooltip formatter={(v) => peso(v)} />
-                  <Bar dataKey="revenue" fill="#1B3C26" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#7B1E2B" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

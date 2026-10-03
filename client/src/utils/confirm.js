@@ -6,7 +6,7 @@ export async function confirmAction(message, options = {}) {
     icon: options.icon || 'warning',
     showCancelButton: true,
     confirmButtonText: options.confirmButtonText || 'Yes',
-    confirmButtonColor: '#1B3C26',
+    confirmButtonColor: '#7B1E2B',
   });
   return result.isConfirmed;
 }

@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { to: '/education', label: 'Learn' },
   { to: '/farm-visit', label: 'Visit the Farm' },
   { to: '/track-order', label: 'Track Order' },
+  { to: '/faq', label: 'FAQs' },
 ];
 
 const emptyNotifications = { notifications: [], unreadCount: 0, markAllRead: () => {} };
@@ -58,12 +59,14 @@ export function Navbar({ notifications = emptyNotifications }) {
             </ul>
 
             <div className="nav-actions d-flex align-items-center gap-3 mt-3 mt-lg-0">
-              <Link to="/cart" className="text-dark position-relative cart-badge-wrap" title="Cart">
-                <i className="fas fa-shopping-basket fa-lg" />
-                <span className="cart-count-badge" style={{ display: count > 0 ? undefined : 'none' }}>
-                  {count}
-                </span>
-              </Link>
+              {user && (
+                <Link to="/cart" className="text-dark position-relative cart-badge-wrap" title="Cart">
+                  <i className="fas fa-shopping-basket fa-lg" />
+                  <span className="cart-count-badge" style={{ display: count > 0 ? undefined : 'none' }}>
+                    {count}
+                  </span>
+                </Link>
+              )}
 
               {user && (
                 <div className="dropdown position-relative">
