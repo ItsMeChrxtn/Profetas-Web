@@ -9,3 +9,4 @@ export { EducationPost, EDUCATION_CATEGORY_VALUES } from './EducationPost.js';
 export { LoyaltyVoucher, LOYALTY_THRESHOLDS } from './LoyaltyVoucher.js';
 export { SiteSettings } from './SiteSettings.js';
 export { Counter, nextSequence } from './Counter.js';
+export { UploadedFile } from './UploadedFile.js';

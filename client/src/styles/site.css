@@ -58,8 +58,8 @@ a { text-decoration: none; }
 }
 
 .site-navbar .brand-logo .brand-logo-img {
-    width: 42px;
-    height: 42px;
+    height: 56px;
+    width: auto;
 }
 
 .site-navbar .nav-link {
@@ -483,4 +483,50 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     border-left: 4px solid var(--primary-green);
     border-radius: var(--radius-sm);
     padding: 14px 16px;
+}
+
+/* ---------------------------------------------------------------- Footer logo */
+/* The logo's text is dark red, so it sits on a white badge over the maroon footer. */
+.footer-logo-badge {
+    display: inline-flex;
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 4px 6px;
+}
+.footer-logo-badge img { height: 36px; width: auto; }
+
+/* ---------------------------------------------------------------- Checkout GCash panel */
+.gcash-panel {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    background: #F0F6FF;
+    border: 1px solid #C9DDFB;
+    border-radius: var(--radius-md);
+    padding: 20px;
+}
+.gcash-qr { width: 190px; flex-shrink: 0; }
+.gcash-qr img {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    background: #0057E4;
+}
+.gcash-steps { flex: 1; min-width: 0; }
+.gcash-steps ol { padding-left: 18px; }
+.gcash-steps li { margin-bottom: 6px; }
+.gcash-amount {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    color: var(--text-muted);
+}
+.gcash-amount strong { font-size: 26px; color: #0057E4; line-height: 1.2; }
+
+@media (max-width: 576px) {
+    .gcash-panel { flex-direction: column; align-items: center; padding: 16px; }
+    .gcash-qr { width: 220px; }
 }

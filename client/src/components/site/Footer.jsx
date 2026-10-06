@@ -7,7 +7,9 @@ export function Footer({ facebookUrl, shopeeUrl }) {
         <div className="row g-4">
           <div className="col-lg-4">
             <h5 className="d-flex align-items-center gap-2">
-              <img src="/logo.svg" alt="" width="24" height="24" />
+              <span className="footer-logo-badge">
+                <img src="/logo.png" alt="" />
+              </span>
               Profetas Integrated Farm
             </h5>
             <p className="small mb-1">Tres Cruces, Tanza, Cavite</p>

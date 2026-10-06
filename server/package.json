@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "seed": "node seed/seed.js",
     "register-webhook": "node scripts/register-lalamove-webhook.js",
-    "create-admin": "node scripts/create-admin.js"
+    "create-admin": "node scripts/create-admin.js",
+    "migrate-uploads": "node scripts/migrate-uploads.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
