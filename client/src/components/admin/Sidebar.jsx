@@ -9,13 +9,11 @@ export function Sidebar({ open, onNavigate }) {
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`} id="sidebar">
       <div className="sidebar-header">
-        <div className="logo">
-          <img src="/logo.svg" alt="Profetas Farm" className="logo-icon-img" />
-          <div className="logo-text">
-            <span className="brand-name">PROFETAS</span>
-            <span className="brand-sub">FARM</span>
-            <span className="portal-tag">ADMIN PORTAL</span>
+        <div className="logo logo-stacked">
+          <div className="logo-badge">
+            <img src="/logo.png" alt="Profeta Integrated Farm" className="logo-full-img" />
           </div>
+          <span className="portal-tag">ADMIN PORTAL</span>
         </div>
       </div>
 

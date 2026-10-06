@@ -11,6 +11,7 @@ import { showToast } from '../../utils/toast.js';
 import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 
 const DELIVERY_METHODS = ['Lalamove', 'Self-Pickup'];
+const GCASH_QR_IMAGE = '/images/gcash-qr.png';
 
 export default function Checkout() {
   const settings = useSiteSettings();
@@ -323,10 +324,35 @@ export default function Checkout() {
               <h5 className="fw-bold mb-3">
                 <i className="fas fa-wallet me-2" />GCash Payment
               </h5>
-              <p className="small text-muted">
-                Send payment to <strong>{settings.gcashNumber}</strong>, then provide your reference number and/or upload your receipt
-                below. Our team will verify it manually.
-              </p>
+              <div className="gcash-panel mb-4">
+                <div className="gcash-qr">
+                  <img src={GCASH_QR_IMAGE} alt="Profeta Integrated Farm GCash QR code" />
+                  <a href={GCASH_QR_IMAGE} download="Profeta-GCash-QR.png" className="btn btn-farm-outline btn-sm w-100 mt-2">
+                    <i className="fas fa-download me-1" />Save QR Code
+                  </a>
+                </div>
+                <div className="gcash-steps">
+                  <div className="gcash-amount">
+                    <span className="small">Amount to pay</span>
+                    <strong>{feeReady ? peso(subtotal + fee) : '—'}</strong>
+                    {!feeReady && <span className="small">Pin your delivery location to see your total.</span>}
+                  </div>
+                  <ol className="small mb-0">
+                    <li>
+                      Open <strong>GCash</strong> and tap <strong>QR</strong>. Scan this code, or save it and choose{' '}
+                      <em>Upload QR</em> if you're on your phone.
+                    </li>
+                    <li>
+                      Pay the <strong>exact amount</strong> above to <strong>PROFETA</strong>
+                      {settings.gcashNumber && <> ({settings.gcashNumber})</>}.
+                    </li>
+                    <li>Enter the reference number from your GCash receipt and/or upload a screenshot below.</li>
+                  </ol>
+                  <div className="small text-muted mt-2">
+                    <i className="fas fa-shield-alt me-1" />Our team verifies every payment before preparing your order.
+                  </div>
+                </div>
+              </div>
               <div className="mb-3">
                 <label className="form-label">GCash Reference Number</label>
                 <input

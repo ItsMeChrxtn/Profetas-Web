@@ -34,8 +34,7 @@ export function Navbar({ notifications = emptyNotifications }) {
       <div className="container">
         <div className="d-flex align-items-start align-items-lg-center justify-content-between">
           <Link to="/" className="brand-logo">
-            <img src="/logo.svg" alt="Profetas Farm" className="brand-logo-img" />
-            <span>PROFETAS FARM</span>
+            <img src="/logo.png" alt="Profeta Integrated Farm" className="brand-logo-img" />
           </Link>
 
           <button className="btn d-lg-none" type="button" onClick={() => setMenuOpen((v) => !v)}>
