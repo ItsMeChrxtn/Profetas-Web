@@ -33,7 +33,7 @@ import AdminPayments from './pages/admin/Payments.jsx';
 import AdminCustomers from './pages/admin/Customers.jsx';
 import AdminEducation from './pages/admin/Education.jsx';
 import AdminFarmVisits from './pages/admin/FarmVisits.jsx';
-import AdminWholesaleInquiries from './pages/admin/WholesaleInquiries.jsx';
+import AdminWholesalerApplications from './pages/admin/WholesalerApplications.jsx';
 import AdminReports from './pages/admin/Reports.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
 
@@ -79,7 +79,7 @@ export default function App() {
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="education-posts" element={<AdminEducation />} />
                 <Route path="farm-visits" element={<AdminFarmVisits />} />
-                <Route path="wholesale-inquiries" element={<AdminWholesaleInquiries />} />
+                <Route path="wholesaler-applications" element={<AdminWholesalerApplications />} />
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>

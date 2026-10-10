@@ -30,10 +30,11 @@ export default function Faq() {
         <FaqItem question="How is the shipping fee computed?" defaultOpen>
           <p>
             We deliver through <strong>Lalamove</strong>, so the shipping fee is computed by Lalamove itself &mdash; not a flat rate.
-            It is based on the <strong>distance</strong> between our farm and the location you pin on the map at checkout.
+            It is based on two things: the <strong>distance</strong> between our farm and the location you pin on the map, and the
+            total <strong>weight (kg)</strong> of your order, which decides the vehicle.
           </p>
           <div className="faq-formula">
-            <div className="fw-bold mb-2">Shipping Fee = Base Fare + (Distance &times; Rate per km) + Surcharges (if any)</div>
+            <div className="fw-bold mb-2">Shipping Fee = Base Fare + Distance Charge (km &times; rate per km) + Service Fee + Surcharges (if any)</div>
             <ul className="mb-0 small">
               <li>
                 <strong>Pickup point:</strong> Profetas Integrated Farm, Tres Cruces, Tanza, Cavite
@@ -42,7 +43,8 @@ export default function Faq() {
                 <strong>Drop-off point:</strong> the exact location you pin on the map
               </li>
               <li>
-                <strong>Vehicle:</strong> Motorcycle
+                <strong>Vehicle (by order weight):</strong> Motorcycle up to 20 kg &rarr; Sedan up to 200 kg &rarr; Small Crossover/MPV up to
+                300 kg &rarr; Van up to 600 kg &rarr; bigger trucks for larger orders. Bigger vehicles have a higher base fare and per-km rate.
               </li>
               <li>
                 <strong>Base fare and per-km rate</strong> are set by Lalamove. Surcharges may apply during peak hours or holidays.
@@ -55,8 +57,12 @@ export default function Faq() {
           </p>
           <p className="mb-0">
             You'll always see the <strong>exact fee before you pay</strong>: once you pin your location at checkout, the fee and your
-            new total appear in the Order Summary.
+            new total appear in the Order Summary, together with the vehicle used and your order's weight.
           </p>
+        </FaqItem>
+        <FaqItem question="Can I pay the delivery fee to the rider instead?">
+          Yes. At checkout, choose <strong>Pay the rider in cash</strong>. Your GCash payment will then cover only the items, and you hand
+          the delivery fee shown at checkout to the Lalamove rider when your order arrives.
         </FaqItem>
         <FaqItem question="Is there a way to avoid the shipping fee?">
           Yes &mdash; choose <strong>Self-Pickup</strong> at checkout and pick up your order at the farm in Tres Cruces, Tanza, Cavite. Pickup
@@ -82,19 +88,58 @@ export default function Faq() {
         </FaqItem>
         <FaqItem question="Do I need an account to order?">
           Yes. Please <Link to="/register">sign up</Link> or <Link to="/login">log in</Link> to view the full catalog, add items to your
-          cart, place orders, and send wholesale inquiries.
+          cart, place orders, and apply as a wholesaler.
         </FaqItem>
         <FaqItem question="What do the order statuses mean?">
           <ul className="mb-0">
             <li><strong>Pending</strong> &ndash; we received your order and are verifying your payment.</li>
             <li><strong>Confirmed</strong> &ndash; your payment is verified.</li>
             <li><strong>Processing</strong> &ndash; your order is being prepared.</li>
-            <li><strong>Shipped</strong> &ndash; your order is on the way, or ready for pickup.</li>
+            <li><strong>Shipped</strong> &ndash; your order is on the way (Lalamove deliveries only).</li>
             <li><strong>Completed</strong> &ndash; your order has been delivered or picked up.</li>
           </ul>
         </FaqItem>
         <FaqItem question="Can I order in bulk?">
-          Yes. For orders of ₱10,000 or more, send us a <Link to="/wholesale">Wholesale Inquiry</Link> and we'll send you a quotation.
+          Yes &mdash; <Link to="/wholesale">become our wholesaler</Link> to get wholesale prices on bulk orders. See the wholesale questions
+          below.
+        </FaqItem>
+      </div>
+
+      <h5 className="fw-bold mb-3">
+        <i className="fas fa-handshake me-2" />Wholesale Account
+      </h5>
+      <div className="farm-card mb-4 p-0">
+        <FaqItem question="How do I become a wholesaler?">
+          <ol className="mb-0">
+            <li>
+              <strong>Submit your application.</strong> Log in, go to <Link to="/wholesale">Become Our Wholesaler</Link>, and tap{' '}
+              <strong>Apply Now</strong>.
+            </li>
+            <li>
+              <strong>Review process.</strong> Our team checks your information and documents and verifies that they are consistent.
+            </li>
+            <li>
+              <strong>Get approved.</strong> Once approved, your account gets wholesaler status, a{' '}
+              <i className="fas fa-check-circle verified-check" /> verified badge, and wholesale pricing.
+            </li>
+          </ol>
+        </FaqItem>
+        <FaqItem question="What do I need to apply?">
+          <ul className="mb-0">
+            <li>Full name and contact information (phone number and email)</li>
+            <li>Business or store name</li>
+            <li>Business address</li>
+            <li>A valid government-issued ID (e.g. PhilID, Driver's License, Passport)</li>
+            <li>Business registration certificate, if available</li>
+            <li>Optional proof of business, such as a photo of your store</li>
+          </ul>
+        </FaqItem>
+        <FaqItem question="What happens if my application is not approved?">
+          Your account stays a regular customer account, and we'll show you the reason. You can update your details and apply again.
+        </FaqItem>
+        <FaqItem question="How do I order at wholesale prices?">
+          Once approved, the <Link to="/wholesale">wholesale page</Link> shows the products available for wholesale at their wholesale
+          price. Add them to your cart and check out as usual &mdash; the wholesale price is applied automatically.
         </FaqItem>
       </div>
 

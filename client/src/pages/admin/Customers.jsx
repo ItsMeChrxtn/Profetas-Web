@@ -37,13 +37,13 @@ export default function Customers() {
     return allItems;
   }
 
-  const CUSTOMER_HEADERS = ['Customer Name', 'Email', 'Location', 'Total Orders', 'Total Spent'];
+  const CUSTOMER_HEADERS = ['Customer Name', 'Account Type', 'Location', 'Total Orders', 'Total Spent'];
 
   async function handleExportCsv() {
     setExporting(true);
     try {
       // Raw numeric totalSpent (not peso-formatted) so spreadsheets can sum it directly.
-      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.email, c.lastAddress || '', c.totalOrders, c.totalSpent]);
+      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.isWholesaler ? 'Wholesaler' : 'Regular', c.lastAddress || '', c.totalOrders, c.totalSpent]);
       downloadCsv(`customers-${todayDateString()}.csv`, toCsv(CUSTOMER_HEADERS, rows));
     } catch (err) {
       showToast('error', 'Could not export customers.');
@@ -55,7 +55,7 @@ export default function Customers() {
   async function handleExportPdf() {
     setExporting(true);
     try {
-      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.email, c.lastAddress || '—', c.totalOrders, peso(c.totalSpent)]);
+      const rows = (await fetchAllCustomers()).map((c) => [`${c.firstName} ${c.lastName}`, c.isWholesaler ? 'Wholesaler' : 'Regular', c.lastAddress || '—', c.totalOrders, peso(c.totalSpent)]);
       await downloadPdfTable({ title: 'Customers', headers: CUSTOMER_HEADERS, rows, filename: `customers-${todayDateString()}.pdf` });
     } catch (err) {
       showToast('error', 'Could not export customers.');
@@ -116,7 +116,7 @@ export default function Customers() {
             <thead>
               <tr>
                 <th>Customer Name</th>
-                <th>Email Address</th>
+                <th>Account Type</th>
                 <th>Location</th>
                 <th>Total Orders</th>
                 <th>Total Spent</th>
@@ -138,7 +138,15 @@ export default function Customers() {
                         <span style={{ fontWeight: 600 }}>{fullName}</span>
                       </div>
                     </td>
-                    <td>{customer.email}</td>
+                    <td>
+                      {customer.isWholesaler ? (
+                        <span className="wholesaler-tag" style={{ marginLeft: 0 }} title={customer.businessName || undefined}>
+                          <i className="fas fa-check-circle" /> Wholesaler
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Regular</span>
+                      )}
+                    </td>
                     <td style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 180 }}>
                       {customer.lastAddress ? (customer.lastAddress.length > 40 ? `${customer.lastAddress.slice(0, 40)}...` : customer.lastAddress) : '—'}
                     </td>

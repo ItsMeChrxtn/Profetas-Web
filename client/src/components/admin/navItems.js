@@ -7,7 +7,7 @@ export const ADMIN_NAV_ITEMS = [
   { to: '/admin/reports', label: 'Reports', icon: 'fa-chart-bar' },
   { to: '/admin/payments', label: 'Payments', icon: 'fa-credit-card' },
   { to: '/admin/delivery-booking', label: 'Delivery Booking', icon: 'fa-truck' },
-  { to: '/admin/wholesale-inquiries', label: 'Wholesale Inquiries', icon: 'fa-truck-loading' },
+  { to: '/admin/wholesaler-applications', label: 'Wholesaler Applications', icon: 'fa-handshake' },
   { to: '/admin/farm-visits', label: 'Farm Visits', icon: 'fa-tractor' },
   { to: '/admin/education-posts', label: 'Education Posts', icon: 'fa-book-open' },
   { to: '/admin/settings', label: 'Settings', icon: 'fa-cog' },

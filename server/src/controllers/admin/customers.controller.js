@@ -66,6 +66,8 @@ export async function listCustomers(req, res) {
           totalOrders: 1,
           totalSpent: 1,
           lastAddress: 1,
+          isWholesaler: 1,
+          businessName: 1,
         },
       },
     ]),

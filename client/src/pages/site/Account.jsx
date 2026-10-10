@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { authApi } from '../../api/auth.js';
 import { showToast } from '../../utils/toast.js';
-import { PasswordInput, PasswordHints } from '../../components/site/PasswordInput.jsx';
+import { PasswordInput, PasswordLengthHint, PasswordMatchHint } from '../../components/site/PasswordInput.jsx';
 
 function ProfileForm({ user, onSaved }) {
   const { updateProfile } = useAuth();
@@ -61,7 +61,7 @@ function ProfileForm({ user, onSaved }) {
   );
 }
 
-function ChangePasswordForm() {
+function ChangePasswordForm({ onDone }) {
   const empty = { currentPassword: '', newPassword: '', confirmPassword: '' };
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
@@ -75,6 +75,7 @@ function ChangePasswordForm() {
       await authApi.changePassword(form);
       showToast('success', 'Password changed.');
       setForm(empty);
+      onDone();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -91,21 +92,21 @@ function ChangePasswordForm() {
         <label className="form-label">Current Password</label>
         <PasswordInput value={form.currentPassword} onChange={update('currentPassword')} required />
       </div>
-      <div className="row g-3 mb-2">
-        <div className="col-md-6">
-          <label className="form-label">New Password</label>
-          <PasswordInput minLength={8} value={form.newPassword} onChange={update('newPassword')} required />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">Confirm New Password</label>
-          <PasswordInput minLength={8} value={form.confirmPassword} onChange={update('confirmPassword')} required />
-        </div>
+      <div className="mb-3">
+        <label className="form-label">New Password</label>
+        <PasswordInput minLength={8} value={form.newPassword} onChange={update('newPassword')} required />
+        <PasswordLengthHint password={form.newPassword} />
       </div>
       <div className="mb-3">
-        <PasswordHints password={form.newPassword} confirmPassword={form.confirmPassword} />
+        <label className="form-label">Confirm New Password</label>
+        <PasswordInput minLength={8} value={form.confirmPassword} onChange={update('confirmPassword')} required />
+        <PasswordMatchHint password={form.newPassword} confirmPassword={form.confirmPassword} />
       </div>
       <button type="submit" className="btn btn-farm-primary" disabled={saving}>
         {saving ? 'Updating...' : 'Update Password'}
+      </button>
+      <button type="button" className="btn btn-farm-outline ms-2" onClick={onDone}>
+        Cancel
       </button>
       <span className="small text-muted ms-3">
         Forgot it? <Link to="/forgot-password">Reset by email</Link>
@@ -117,6 +118,7 @@ function ChangePasswordForm() {
 export default function Account() {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   if (!user) return null;
 
   const fullName = `${user.firstName} ${user.lastName}`;
@@ -133,13 +135,25 @@ export default function Account() {
             {user.lastName[0]}
           </div>
           <div className="flex-grow-1">
-            <div className="fw-bold fs-5">{fullName}</div>
+            <div className="fw-bold fs-5">
+              {fullName}
+              {user.isWholesaler && (
+                <span className="wholesaler-badge ms-2">
+                  <i className="fas fa-check-circle" /> Verified Wholesaler
+                </span>
+              )}
+            </div>
             <div className="small text-muted">{user.email}</div>
           </div>
           {!editing && (
-            <button type="button" className="btn btn-farm-outline btn-sm" onClick={() => setEditing(true)}>
-              <i className="fas fa-pen me-1" />Edit Profile
-            </button>
+            <div className="d-flex flex-column flex-sm-row gap-2">
+              <button type="button" className="btn btn-farm-outline btn-sm" onClick={() => setEditing(true)}>
+                <i className="fas fa-pen me-1" />Edit Profile
+              </button>
+              <button type="button" className="btn btn-farm-outline btn-sm" onClick={() => setChangingPassword(true)}>
+                <i className="fas fa-lock me-1" />Change Password
+              </button>
+            </div>
           )}
         </div>
 
@@ -163,12 +177,14 @@ export default function Account() {
         )}
       </div>
 
-      <div className="farm-card mb-4">
-        <h5 className="fw-bold mb-3">
-          <i className="fas fa-lock me-2" />Change Password
-        </h5>
-        <ChangePasswordForm />
-      </div>
+      {changingPassword && (
+        <div className="farm-card mb-4">
+          <h5 className="fw-bold mb-3">
+            <i className="fas fa-lock me-2" />Change Password
+          </h5>
+          <ChangePasswordForm onDone={() => setChangingPassword(false)} />
+        </div>
+      )}
 
       <div className="d-flex flex-wrap gap-2">
         <Link to="/loyalty" className="btn btn-farm-outline">

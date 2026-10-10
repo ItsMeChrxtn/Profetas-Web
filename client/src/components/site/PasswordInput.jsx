@@ -30,16 +30,22 @@ function Hint({ ok, children }) {
   );
 }
 
-/** Live checklist under a new-password field: length, and (optionally) that both entries match. */
-export function PasswordHints({ password, confirmPassword }) {
+/** Shown right under the new-password field. */
+export function PasswordLengthHint({ password }) {
   return (
-    <div className="small">
+    <div className="small mt-1">
       <Hint ok={password.length >= MIN_PASSWORD_LENGTH}>
         <strong>Password Length:</strong> must contain at least {MIN_PASSWORD_LENGTH} characters
       </Hint>
-      {confirmPassword !== undefined && (
-        <Hint ok={confirmPassword.length > 0 && password === confirmPassword}>Passwords match</Hint>
-      )}
+    </div>
+  );
+}
+
+/** Shown right under the confirm-password field. */
+export function PasswordMatchHint({ password, confirmPassword }) {
+  return (
+    <div className="small mt-1">
+      <Hint ok={confirmPassword.length > 0 && password === confirmPassword}>Passwords match</Hint>
     </div>
   );
 }

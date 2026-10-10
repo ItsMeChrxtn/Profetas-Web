@@ -5,11 +5,18 @@ import { cartApi } from '../../api/cart.js';
 import { peso } from '../../utils/peso.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 
-function CartRow({ item, onUpdate, onRemove }) {
+function CartRow({ item, selected, onToggle, onUpdate, onRemove }) {
   const [qty, setQty] = useState(item.quantity);
 
   return (
     <div className="d-flex align-items-center gap-3 p-3 border-bottom">
+      <input
+        type="checkbox"
+        className="form-check-input cart-check mt-0"
+        checked={selected}
+        onChange={() => onToggle(item.productId)}
+        aria-label={`Select ${item.name} for checkout`}
+      />
       <img
         src={mediaUrl(item.image) || '/placeholder.svg'}
         alt=""
@@ -54,6 +61,8 @@ export default function Cart() {
   const [resolved, setResolved] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  // Lines ticked for checkout; new lines start ticked.
+  const [deselected, setDeselected] = useState(() => new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +82,30 @@ export default function Cart() {
   }, [items, asItemsArray]);
 
   if (loading) return null;
+
+  const selectedItems = resolved.filter((item) => !deselected.has(String(item.productId)));
+  const selectedSubtotal = Math.round(selectedItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
+  const allSelected = selectedItems.length === resolved.length;
+
+  function toggle(productId) {
+    setDeselected((prev) => {
+      const next = new Set(prev);
+      const key = String(productId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setDeselected(allSelected ? new Set(resolved.map((item) => String(item.productId))) : new Set());
+  }
+
+  function checkout() {
+    navigate('/checkout', {
+      state: { fromCart: true, items: selectedItems.map((item) => ({ productId: item.productId, quantity: item.quantity })) },
+    });
+  }
 
   if (resolved.length === 0) {
     return (
@@ -96,8 +129,19 @@ export default function Cart() {
       <div className="row g-4">
         <div className="col-lg-8">
           <div className="farm-card p-0">
+            <label className="d-flex align-items-center gap-3 px-3 py-2 border-bottom small fw-bold mb-0" style={{ cursor: 'pointer' }}>
+              <input type="checkbox" className="form-check-input cart-check mt-0" checked={allSelected} onChange={toggleAll} />
+              Select all ({resolved.length})
+            </label>
             {resolved.map((item) => (
-              <CartRow key={item.productId} item={item} onUpdate={updateQuantity} onRemove={removeItem} />
+              <CartRow
+                key={item.productId}
+                item={item}
+                selected={!deselected.has(String(item.productId))}
+                onToggle={toggle}
+                onUpdate={updateQuantity}
+                onRemove={removeItem}
+              />
             ))}
           </div>
         </div>
@@ -105,18 +149,20 @@ export default function Cart() {
           <div className="farm-card">
             <h5 className="fw-bold mb-3">Order Summary</h5>
             <div className="d-flex justify-content-between mb-2">
-              <span className="text-muted">Subtotal</span>
-              <span className="fw-bold">{peso(subtotal)}</span>
+              <span className="text-muted">
+                Subtotal ({selectedItems.length} of {resolved.length} items)
+              </span>
+              <span className="fw-bold">{peso(selectedSubtotal)}</span>
             </div>
             <p className="small text-muted">Delivery fees are calculated at checkout based on your chosen delivery method.</p>
-            <button className="btn btn-farm-primary w-100 mt-2" onClick={() => navigate('/checkout')}>
-              Proceed to Checkout <i className="fas fa-arrow-right ms-1" />
+            <button className="btn btn-farm-primary w-100 mt-2" onClick={checkout} disabled={selectedItems.length === 0}>
+              Checkout Selected <i className="fas fa-arrow-right ms-1" />
             </button>
           </div>
           {subtotal >= 10000 && (
             <div className="alert alert-warning mt-3 small">
-              <i className="fas fa-info-circle me-1" /> Ordering ₱10,000+? Consider our{' '}
-              <Link to="/wholesale">Wholesale Inquiry</Link> for bulk pricing.
+              <i className="fas fa-info-circle me-1" /> Ordering ₱10,000+? <Link to="/wholesale">Become our wholesaler</Link> for
+              bulk pricing.
             </div>
           )}
         </div>

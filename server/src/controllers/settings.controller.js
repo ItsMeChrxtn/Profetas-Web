@@ -11,6 +11,10 @@ export async function getPublicSettings(req, res) {
       facebookUrl: settings?.facebookUrl ?? DEFAULTS.facebookUrl,
       shopeeUrl: settings?.shopeeUrl ?? DEFAULTS.shopeeUrl,
       gcashNumber: settings?.gcashNumber ?? DEFAULTS.gcashNumber,
+      heroImages: settings?.heroImages ?? [],
+      glimpseImages: settings?.glimpseImages ?? [],
+      aboutText: settings?.aboutText ?? '',
+      aboutImage: settings?.aboutImage ?? null,
     },
   });
 }

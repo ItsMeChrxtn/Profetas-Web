@@ -20,6 +20,8 @@ function publicUser(user) {
     email: user.email,
     contactNumber: user.contactNumber,
     role: user.role,
+    isWholesaler: Boolean(user.isWholesaler),
+    businessName: user.businessName || null,
   };
 }
 

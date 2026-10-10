@@ -906,3 +906,96 @@ tr:last-child td {
     object-fit: contain;
 }
 .logo-stacked .portal-tag { align-self: center; }
+
+/* Modals with longer content (order details, applications) scroll inside the viewport. */
+.modal-container { max-height: 90vh; overflow-y: auto; }
+.modal-container.modal-lg { width: 720px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 10px 15px;
+    font-size: 14px;
+}
+.detail-grid > span { color: var(--text-muted); }
+.detail-grid > strong { font-weight: 600; word-break: break-word; }
+
+.doc-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 140px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main);
+    text-decoration: none;
+}
+.doc-thumb img {
+    width: 140px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.alert-inline {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border-radius: var(--radius-sm);
+    padding: 12px 15px;
+    font-size: 13px;
+}
+
+.receipt-preview { width: 100%; max-height: 65vh; object-fit: contain; border-radius: var(--radius-md); background: #F3F4F6; }
+
+.wholesaler-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1D9BF0;
+    background: #E8F5FE;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-left: 6px;
+}
+.method-tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.method-tag.lalamove { background: #FFF1E6; color: #C2410C; }
+.method-tag.pickup { background: #ECFDF5; color: #047857; }
+
+@media (max-width: 576px) {
+    .detail-grid { grid-template-columns: 1fr; gap: 2px; }
+    .detail-grid > strong { margin-bottom: 8px; }
+}
+.btn-link-plain { background: none; border: none; padding: 0; color: var(--primary-green); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+/* Reports: compact date range + presets */
+.report-range { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.report-dates { display: flex; align-items: center; gap: 6px; }
+.report-dates .form-control { width: 140px; padding: 6px 10px; font-size: 13px; height: auto; }
+.report-dates .btn { padding: 7px 11px; }
+.report-dates span { font-size: 13px; color: var(--text-muted); }
+.export-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+.export-item { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+.export-item-title { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.export-item-title i { color: var(--primary-green); }
+@media (max-width: 768px) { .report-range { align-items: stretch; } .report-dates .form-control { width: 100%; } }
+
+/* Settings: landing page images */
+.landing-section { border-top: 1px solid var(--border-color); padding: 20px 0; }
+.landing-section:first-of-type { border-top: none; padding-top: 0; }
+.landing-section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+.landing-section-head h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.landing-section-head p { font-size: 13px; color: var(--text-muted); margin: 0; }
+.landing-thumbs { display: flex; gap: 15px; flex-wrap: wrap; }
+.landing-thumb { position: relative; width: 180px; display: flex; flex-direction: column; gap: 8px; }
+.landing-thumb img { width: 180px; height: 120px; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.landing-thumb .form-control { font-size: 12px; padding: 6px 8px; }
+.landing-thumb-remove {
+    position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; font-size: 12px;
+}
+.landing-empty { font-size: 13px; color: var(--text-muted); margin: 0; }

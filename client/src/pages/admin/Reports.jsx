@@ -5,23 +5,93 @@ import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { StatCard } from '../../components/admin/StatCard.jsx';
 import { peso } from '../../utils/peso.js';
 import { todayDateString } from '../../utils/dateFormat.js';
+import { exportReport } from '../../utils/adminExports.js';
+import { showToast } from '../../utils/toast.js';
 
 const PIE_COLORS = ['#7B1E2B', '#C97B2E', '#3B82F6', '#EF4444', '#8B5CF6'];
 
-function thirtyDaysAgoString() {
-  return new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+function dateString(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function daysAgoString(days) {
+  return dateString(new Date(Date.now() - days * 24 * 60 * 60 * 1000));
+}
+
+// Quick ranges ending today.
+const PRESETS = [
+  { key: 'weekly', label: 'Weekly', start: () => daysAgoString(6) },
+  { key: 'monthly', label: 'Monthly', start: () => daysAgoString(29) },
+  { key: 'yearly', label: 'Yearly', start: () => daysAgoString(364) },
+];
+
+const EXPORTS = [
+  { kind: 'customers', label: 'Customers', icon: 'fa-users' },
+  { kind: 'inventory', label: 'Inventory', icon: 'fa-warehouse' },
+  { kind: 'products', label: 'Products', icon: 'fa-box' },
+];
+
+function ExportCard() {
+  const [busy, setBusy] = useState(null);
+
+  async function run(kind, format) {
+    setBusy(`${kind}-${format}`);
+    try {
+      await exportReport(kind, format);
+    } catch {
+      showToast('error', 'Could not export that report.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h3 className="card-title">
+          <i className="fas fa-file-export" /> Export Reports
+        </h3>
+      </div>
+      <div className="export-grid">
+        {EXPORTS.map((e) => (
+          <div className="export-item" key={e.kind}>
+            <div className="export-item-title">
+              <i className={`fas ${e.icon}`} /> {e.label}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-outline" disabled={busy !== null} onClick={() => run(e.kind, 'csv')}>
+                <i className="fas fa-file-csv" /> {busy === `${e.kind}-csv` ? 'Exporting...' : 'CSV'}
+              </button>
+              <button className="btn btn-outline" disabled={busy !== null} onClick={() => run(e.kind, 'pdf')}>
+                <i className="fas fa-file-pdf" /> {busy === `${e.kind}-pdf` ? 'Exporting...' : 'PDF'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Reports() {
-  const [startDate, setStartDate] = useState(thirtyDaysAgoString());
+  const [startDate, setStartDate] = useState(daysAgoString(29));
   const [endDate, setEndDate] = useState(todayDateString());
+  const [preset, setPreset] = useState('monthly');
   const [data, setData] = useState(null);
 
-  function load() {
-    adminReportsApi.get({ startDate, endDate }).then(setData);
+  function load(range = { startDate, endDate }) {
+    adminReportsApi.get(range).then(setData);
   }
 
-  useEffect(load, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => load(), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function applyPreset(p) {
+    const range = { startDate: p.start(), endDate: todayDateString() };
+    setPreset(p.key);
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
+    load(range);
+  }
 
   if (!data) return null;
 
@@ -33,13 +103,38 @@ export default function Reports() {
         title="Reports"
         subtitle="Analyze your sales performance and farm productivity."
         actions={
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input type="date" className="form-control" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <span>to</span>
-            <input type="date" className="form-control" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            <button className="btn btn-primary" onClick={load}>
-              <i className="fas fa-sync-alt" /> Apply
-            </button>
+          <div className="report-range">
+            <div className="status-filter-row">
+              {PRESETS.map((p) => (
+                <button key={p.key} type="button" className={`status-filter-pill ${preset === p.key ? 'active' : ''}`} onClick={() => applyPreset(p)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <div className="report-dates">
+              <input
+                type="date"
+                className="form-control"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPreset('');
+                }}
+              />
+              <span>to</span>
+              <input
+                type="date"
+                className="form-control"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPreset('');
+                }}
+              />
+              <button className="btn btn-primary" onClick={() => load()} title="Apply custom range">
+                <i className="fas fa-sync-alt" />
+              </button>
+            </div>
           </div>
         }
       />
@@ -142,6 +237,8 @@ export default function Reports() {
           </table>
         </div>
       </div>
+
+      <ExportCard />
     </>
   );
 }

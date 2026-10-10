@@ -3,6 +3,7 @@ import { adminSettingsApi } from '../../api/admin/settings.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { showToast } from '../../utils/toast.js';
+import { LandingPageSettings } from '../../components/admin/LandingPageSettings.jsx';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -203,6 +204,8 @@ export default function Settings() {
             </div>
           </form>
         </div>
+
+        <LandingPageSettings />
 
         <div className="card" id="security" style={{ marginTop: 30 }}>
           <div className="card-header">

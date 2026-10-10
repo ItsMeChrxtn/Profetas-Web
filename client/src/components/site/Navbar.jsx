@@ -6,7 +6,7 @@ import { useCart } from '../../context/CartContext.jsx';
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/shop', label: 'Shop' },
-  { to: '/wholesale', label: 'Wholesale' },
+  { to: '/wholesale', label: 'Become Our Wholesaler' },
   { to: '/education', label: 'Learn' },
   { to: '/farm-visit', label: 'Visit the Farm' },
   { to: '/track-order', label: 'Track Order' },
@@ -97,6 +97,7 @@ export function Navbar({ notifications = emptyNotifications }) {
                 <div className="dropdown">
                   <button type="button" className="btn btn-farm-outline dropdown-toggle" onClick={() => setProfileOpen((v) => !v)}>
                     <i className="fas fa-user-circle" /> {user.firstName}
+                    {user.isWholesaler && <i className="fas fa-check-circle verified-check ms-1" title="Verified Wholesaler" />}
                   </button>
                   {profileOpen && (
                     <ul className="dropdown-menu dropdown-menu-end show" style={{ position: 'absolute', right: 0 }}>

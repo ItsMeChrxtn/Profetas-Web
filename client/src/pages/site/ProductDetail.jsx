@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { useCart } from '../../context/CartContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -15,6 +15,7 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [notFound, setNotFound] = useState(false);
@@ -49,6 +50,12 @@ export default function ProductDetail() {
 
   const status = stockStatus(product.stockQty, product.lowStockThreshold);
   const inStock = status !== 'Out of Stock';
+  const wholesalePrice = user?.isWholesaler && product.availableForWholesale && product.wholesalePrice > 0 ? product.wholesalePrice : null;
+
+  // Buy Now skips the cart: checkout gets just this item.
+  function handleBuyNow() {
+    navigate('/checkout', { state: { items: [{ productId: product._id, quantity: qty }] } });
+  }
 
   async function handleAddToCart() {
     setAdding(true);
@@ -94,9 +101,15 @@ export default function ProductDetail() {
           </h1>
           <div className="mb-3">
             <span className="fs-3 fw-800" style={{ color: 'var(--primary-green)', fontWeight: 800 }}>
-              {peso(product.price)}
+              {peso(wholesalePrice ?? product.price)}
             </span>
             <span className="text-muted">/ {product.unit}</span>
+            {wholesalePrice && (
+              <div className="small">
+                <i className="fas fa-check-circle verified-check me-1" />
+                Wholesale price &middot; retail <s>{peso(product.price)}</s>
+              </div>
+            )}
           </div>
           <div className="mb-3 d-inline-block">
             <StockBadge stockQty={product.stockQty} lowStockThreshold={product.lowStockThreshold} />
@@ -112,12 +125,21 @@ export default function ProductDetail() {
               <i className="fas fa-sign-in-alt me-2" />Log in to order
             </Link>
           ) : inStock ? (
-            <div className="d-flex align-items-center gap-3 mt-4">
-              <QuantityStepper value={qty} max={product.stockQty} onChange={setQty} />
-              <button className="btn btn-farm-primary flex-grow-1" disabled={adding} onClick={handleAddToCart}>
-                <i className="fas fa-shopping-basket me-2" />
-                {adding ? 'Adding...' : 'Add to Cart'}
-              </button>
+            <div className="mt-4">
+              <div className="d-flex align-items-center gap-3 mb-3">
+                <span className="small text-muted">Quantity</span>
+                <QuantityStepper value={qty} max={product.stockQty} onChange={setQty} />
+              </div>
+              <div className="d-flex gap-2">
+                <button className="btn btn-farm-outline flex-grow-1" disabled={adding} onClick={handleAddToCart}>
+                  <i className="fas fa-shopping-basket me-2" />
+                  {adding ? 'Adding...' : 'Add to Cart'}
+                </button>
+                <button className="btn btn-farm-primary flex-grow-1" onClick={handleBuyNow}>
+                  <i className="fas fa-bolt me-2" />
+                  Buy Now
+                </button>
+              </div>
             </div>
           ) : (
             <button className="btn btn-farm-outline mt-4" disabled>

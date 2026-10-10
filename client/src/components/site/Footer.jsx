@@ -20,7 +20,7 @@ export function Footer({ facebookUrl, shopeeUrl }) {
             <p><Link to="/shop?category=Fresh">Fresh Produce</Link></p>
             <p><Link to="/shop?category=Value-Added">Value-Added</Link></p>
             <p><Link to="/shop?category=Farm+Inputs">Farm Inputs</Link></p>
-            <p><Link to="/wholesale">Wholesale Inquiry</Link></p>
+            <p><Link to="/wholesale">Become Our Wholesaler</Link></p>
           </div>
           <div className="col-lg-2 col-md-4">
             <h5>Company</h5>

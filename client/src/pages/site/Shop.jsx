@@ -88,19 +88,27 @@ export default function Shop() {
             ))}
           </div>
 
-          {pagination.totalPages > 1 && (
-            <nav className="mt-4">
-              <ul className="pagination justify-content-center">
-                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((i) => (
-                  <li className={`page-item ${i === page ? 'active' : ''}`} key={i}>
-                    <Link className="page-link" to={shopUrl(category, initialQ, i)}>
-                      {i}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
+          <nav className="mt-4" aria-label="Shop pages">
+            <ul className="pagination farm-pagination justify-content-center">
+              <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
+                <Link className="page-link" to={shopUrl(category, initialQ, page - 1)} aria-label="Previous page">
+                  <i className="fas fa-chevron-left" />
+                </Link>
+              </li>
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((i) => (
+                <li className={`page-item ${i === page ? 'active' : ''}`} key={i}>
+                  <Link className="page-link" to={shopUrl(category, initialQ, i)}>
+                    {i}
+                  </Link>
+                </li>
+              ))}
+              <li className={`page-item ${page >= pagination.totalPages ? 'disabled' : ''}`}>
+                <Link className="page-link" to={shopUrl(category, initialQ, page + 1)} aria-label="Next page">
+                  <i className="fas fa-chevron-right" />
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </>
       )}
     </div>

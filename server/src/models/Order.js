@@ -55,6 +55,12 @@ const orderSchema = new mongoose.Schema(
     trackingNumber: { type: String, default: null },
     lalamoveShareLink: { type: String, default: null },
     lalamoveQuotedPrice: { type: Number, default: null },
+    // Vehicle picked from the order's total weight at checkout; reused when booking.
+    totalWeightKg: { type: Number, default: 0 },
+    lalamoveServiceType: { type: String, default: null },
+    // 'Rider' = customer pays the delivery fee in cash to the rider, so GCash covers items only.
+    deliveryFeePayment: { type: String, enum: ['GCash', 'Rider'], default: 'GCash' },
+    isWholesaleOrder: { type: Boolean, default: false },
     payment: { type: paymentSchema, required: true },
   },
   { timestamps: { createdAt: false, updatedAt: 'updatedAt' } }

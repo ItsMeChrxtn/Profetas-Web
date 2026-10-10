@@ -53,10 +53,19 @@ export function CartProvider({ children }) {
 
   const clear = useCallback(() => setItems({}), []);
 
+  // After checking out only some lines, drop just those.
+  const removeItems = useCallback((productIds) => {
+    setItems((prev) => {
+      const next = { ...prev };
+      productIds.forEach((id) => delete next[id]);
+      return next;
+    });
+  }, []);
+
   const asItemsArray = useCallback(() => Object.entries(items).map(([productId, quantity]) => ({ productId, quantity })), [items]);
 
   return (
-    <CartContext.Provider value={{ items, count, addItem, updateQuantity, removeItem, clear, asItemsArray }}>
+    <CartContext.Provider value={{ items, count, addItem, updateQuantity, removeItem, removeItems, clear, asItemsArray }}>
       {children}
     </CartContext.Provider>
   );

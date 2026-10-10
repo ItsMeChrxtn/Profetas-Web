@@ -530,3 +530,161 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     .gcash-panel { flex-direction: column; align-items: center; padding: 16px; }
     .gcash-qr { width: 220px; }
 }
+
+/* ---------------------------------------------------------------- Home: hero slideshow */
+.hero-slides { position: absolute; inset: 0; z-index: 0; }
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity 1.2s ease, transform 7s ease;
+}
+.hero-slide.active { opacity: 1; transform: scale(1); }
+/* Darken photos on the left so the white headline stays readable. */
+.hero-section.has-images::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(90deg, rgba(74,15,24,0.92) 0%, rgba(74,15,24,0.7) 45%, rgba(74,15,24,0.2) 100%);
+}
+.hero-dots { position: absolute; bottom: 18px; right: 24px; z-index: 2; display: flex; gap: 8px; }
+.hero-dots button {
+    width: 10px; height: 10px; border-radius: 50%; border: none; padding: 0;
+    background: rgba(255,255,255,0.5); cursor: pointer;
+}
+.hero-dots button.active { background: #fff; width: 26px; border-radius: 6px; }
+
+/* ---------------------------------------------------------------- Home: glimpse + about */
+.glimpse-card {
+    position: relative;
+    margin: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    box-shadow: var(--shadow-md);
+}
+.glimpse-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.glimpse-card:hover img { transform: scale(1.05); }
+.glimpse-card figcaption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 28px 16px 12px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.65));
+}
+.about-card { padding: 30px; }
+.about-image { width: 100%; border-radius: var(--radius-md); aspect-ratio: 4 / 3; object-fit: cover; }
+.about-eyebrow {
+    color: var(--accent-amber);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.about-text { color: #374151; line-height: 1.8; margin: 0; }
+
+/* ---------------------------------------------------------------- Become a Wholesaler */
+.wholesale-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, #FDF2E9 0%, #FBE3D0 100%);
+    border-radius: var(--radius-lg);
+    padding: 32px 36px;
+    margin-bottom: 24px;
+}
+.wholesale-hero h1 { font-size: 30px; font-weight: 800; color: var(--primary-green); margin-bottom: 8px; }
+.wholesale-hero p { color: #4B5563; margin: 0; }
+.wholesale-hero-icon { font-size: 70px; color: var(--accent-amber); opacity: 0.85; }
+.wholesale-section-label {
+    display: table;
+    margin: -38px auto 24px;
+    background: var(--primary-green);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 8px 22px;
+    border-radius: 30px;
+}
+.wholesale-step-number {
+    width: 30px; height: 30px; margin: 0 auto 10px; border-radius: 50%;
+    background: var(--accent-amber); color: #fff; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+}
+.wholesale-step-icon, .wholesale-req-icon {
+    width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 16px;
+    background: #FDF2E9; color: var(--accent-amber);
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.verified-check { color: #1D9BF0; }
+
+@media (max-width: 576px) {
+    .wholesale-hero { padding: 24px; }
+    .wholesale-hero h1 { font-size: 24px; }
+    .wholesale-hero-icon { display: none; }
+}
+
+/* ---------------------------------------------------------------- Shop pagination */
+.farm-pagination .page-link { color: var(--primary-green); border-color: var(--border-color); min-width: 40px; text-align: center; }
+.farm-pagination .page-item.active .page-link { background: var(--primary-green); border-color: var(--primary-green); color: #fff; }
+.farm-pagination .page-item.disabled .page-link { color: #C4C4C4; }
+.cart-check { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+.cart-check:checked { background-color: var(--primary-green); border-color: var(--primary-green); }
+
+/* ---------------------------------------------------------------- Checkout delivery fee */
+.delivery-quote-info {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--cream-bg);
+    border-left: 4px solid var(--accent-amber);
+    font-size: 14px;
+}
+.delivery-quote-info > i { color: var(--accent-amber); margin-top: 3px; }
+.fee-pay-option {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+.fee-pay-option:has(input:checked) { border-color: var(--primary-green); background: #FBF4F5; }
+.fee-pay-option input { margin-top: 4px; accent-color: var(--primary-green); }
+
+.wholesaler-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 700; color: #1D9BF0;
+    background: #E8F5FE; border-radius: 20px; padding: 2px 10px; vertical-align: middle;
+}
+
+/* ---------------------------------------------------------------- Checkout: fee breakdown */
+.fee-breakdown {
+    margin-top: 14px;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-amber);
+    border-radius: var(--radius-sm);
+    background: var(--cream-bg);
+    padding: 14px 16px;
+}
+.fee-breakdown-title { font-weight: 800; margin-bottom: 10px; color: var(--primary-green); }
+.fee-breakdown-facts { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-bottom: 10px; font-size: 13px; }
+.fee-breakdown-facts span { display: block; color: var(--text-muted); font-size: 12px; }
+.fee-breakdown-facts small { font-weight: 400; color: var(--text-muted); }
+.fee-breakdown-table { width: 100%; font-size: 14px; }
+.fee-breakdown-table td { padding: 6px 0; border-top: 1px dashed #E5DCCB; vertical-align: top; }
+.fee-breakdown-table td:last-child { text-align: right; white-space: nowrap; padding-left: 12px; }
+.fee-breakdown-total td { font-weight: 800; border-top: 2px solid #D9CDB5; color: var(--primary-green); }

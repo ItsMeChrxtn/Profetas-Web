@@ -61,11 +61,11 @@ async function lalamoveRequest(method, path, payload) {
   return data?.data ?? null;
 }
 
-/** pickup/dropoff: { lat, lng, address }. Returns the raw quotation data (stops carry the stopId needed to place the order). */
-export async function getLalamoveQuotation({ pickup, dropoff }) {
+/** pickup/dropoff: { lat, lng, address }; serviceType defaults to LALAMOVE_SERVICE_TYPE. Returns the raw quotation data (stops carry the stopId needed to place the order). */
+export async function getLalamoveQuotation({ pickup, dropoff, serviceType = env.lalamoveServiceType }) {
   return lalamoveRequest('POST', '/v3/quotations', {
     data: {
-      serviceType: env.lalamoveServiceType,
+      serviceType,
       specialRequests: [],
       language: 'en_PH',
       stops: [
