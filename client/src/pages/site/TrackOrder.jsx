@@ -8,6 +8,8 @@ import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
 import { API_BASE } from '../../utils/apiBase.js';
 
 const STATUS_STEPS = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed'];
+// Self-pickup orders are never shipped.
+const PICKUP_STEPS = STATUS_STEPS.filter((s) => s !== 'Shipped');
 const STEP_ICONS = { Pending: 'fa-clock', Confirmed: 'fa-check', Processing: 'fa-cog', Shipped: 'fa-truck', Completed: 'fa-box-open' };
 
 // Plain-language line under the tracker, e.g. so a guest can tell if it is being prepared yet.
@@ -15,12 +17,13 @@ const STATUS_MESSAGES = {
   Pending: 'We received your order and are verifying your GCash payment.',
   Confirmed: 'Payment verified - your order is confirmed.',
   Processing: 'Your order is being prepared.',
-  Shipped: 'Your order is on the way / ready for pickup.',
+  Shipped: 'Your order is on the way.',
   Completed: 'Your order has been delivered / picked up.',
   Cancelled: 'This order was cancelled.',
 };
 
-function StatusTracker({ status }) {
+function StatusTracker({ status, deliveryMethod }) {
+  const steps = deliveryMethod === 'Self-Pickup' ? PICKUP_STEPS : STATUS_STEPS;
   if (status === 'Cancelled') {
     return (
       <div className="status-pill status-cancelled mb-3">
@@ -28,10 +31,10 @@ function StatusTracker({ status }) {
       </div>
     );
   }
-  const currentIndex = STATUS_STEPS.indexOf(status);
+  const currentIndex = steps.indexOf(status);
   return (
     <div className="tracker">
-      {STATUS_STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const stateClass = i < currentIndex ? 'done' : i === currentIndex ? 'current done' : '';
         return (
           <div className={`tracker-step ${stateClass}`} key={step}>
@@ -107,7 +110,7 @@ function MyOrders() {
               </span>
             </div>
 
-            <StatusTracker status={order.status} />
+            <StatusTracker status={order.status} deliveryMethod={order.deliveryMethod} />
             <p className="small text-muted mb-0">{STATUS_MESSAGES[order.status]}</p>
 
             <div className="row g-3 mt-2">
@@ -245,7 +248,7 @@ function GuestTracker() {
             </span>
           </div>
 
-          <StatusTracker status={order.status} />
+          <StatusTracker status={order.status} deliveryMethod={order.deliveryMethod} />
           <p className="fw-bold mb-3">{STATUS_MESSAGES[order.status]}</p>
 
           <div className="row g-3">

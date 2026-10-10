@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { adminOrdersApi } from '../../api/admin/orders.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
+import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDate, orderNumberLabel, todayDateString } from '../../utils/dateFormat.js';
 import { toCsv, downloadCsv } from '../../utils/csv.js';
@@ -21,6 +22,7 @@ export default function Orders() {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
   const [exporting, setExporting] = useState(false);
+  const [viewingId, setViewingId] = useState(null);
 
   useEffect(() => {
     adminOrdersApi.list({ q, status, page }).then((data) => {
@@ -134,6 +136,7 @@ export default function Orders() {
                 <th>Order ID</th>
                 <th>Customer</th>
                 <th>Date</th>
+                <th>Method</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -145,16 +148,19 @@ export default function Orders() {
                   <td style={{ fontWeight: 600 }}>{orderNumberLabel(order.orderNumber)}</td>
                   <td>{order.customerName}</td>
                   <td>{formatDate(order.orderDate)}</td>
+                  <td>
+                    <span className={`method-tag ${order.deliveryMethod === 'Lalamove' ? 'lalamove' : 'pickup'}`}>{order.deliveryMethod}</span>
+                  </td>
                   <td style={{ fontWeight: 700 }}>{peso(order.totalAmount)}</td>
                   <td>
                     <AdminStatusPill status={order.status} />
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 5 }}>
-                      <Link to={`/admin/delivery-booking?order_id=${order._id}`} className="btn btn-icon btn-outline">
+                      <button type="button" className="btn btn-icon btn-outline" title="View details" onClick={() => setViewingId(order._id)}>
                         <i className="far fa-eye" />
-                      </Link>
-                      <Link to={`/admin/delivery-booking?order_id=${order._id}#statusUpdate`} className="btn btn-icon btn-outline">
+                      </button>
+                      <Link to={`/admin/delivery-booking?order_id=${order._id}`} className="btn btn-icon btn-outline" title="Update status / book delivery">
                         <i className="far fa-edit" />
                       </Link>
                     </div>
@@ -163,7 +169,7 @@ export default function Orders() {
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
                     No orders found.
                   </td>
                 </tr>
@@ -185,6 +191,8 @@ export default function Orders() {
           </div>
         </div>
       </div>
+
+      {viewingId && <OrderDetailsModal orderId={viewingId} onClose={() => setViewingId(null)} />}
     </>
   );
 }

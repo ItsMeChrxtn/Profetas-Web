@@ -2,6 +2,17 @@ import { Product, PRODUCT_CATEGORY_VALUES, Order } from '../../models/index.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../../middleware/upload.js';
 import { HttpError } from '../../utils/httpError.js';
 
+// 0 = Out of Stock, 1 = Low Stock, 2 = In Stock - admins see what needs restocking first.
+const RESTOCK_RANK = {
+  $switch: {
+    branches: [
+      { case: { $lte: ['$stockQty', 0] }, then: 0 },
+      { case: { $lte: ['$stockQty', '$lowStockThreshold'] }, then: 1 },
+    ],
+    default: 2,
+  },
+};
+
 const PER_PAGE = 15;
 
 export async function listAdminProducts(req, res) {
@@ -14,10 +25,13 @@ export async function listAdminProducts(req, res) {
   if (status && ['Active', 'Inactive'].includes(status)) filter.status = status;
 
   const [items, total] = await Promise.all([
-    Product.find(filter)
-      .sort({ _id: -1 })
-      .skip((page - 1) * PER_PAGE)
-      .limit(PER_PAGE),
+    Product.aggregate([
+      { $match: filter },
+      { $addFields: { stockRank: RESTOCK_RANK } },
+      { $sort: { stockRank: 1, _id: -1 } },
+      { $skip: (page - 1) * PER_PAGE },
+      { $limit: PER_PAGE },
+    ]),
     Product.countDocuments(filter),
   ]);
 
@@ -37,6 +51,20 @@ function validateProductFields(body) {
   return numericPrice;
 }
 
+/** Weight and wholesale fields shared by create and update. */
+function extraProductFields(body) {
+  const availableForWholesale = body.availableForWholesale === 'true' || body.availableForWholesale === true;
+  const wholesalePrice = parseFloat(body.wholesalePrice);
+  if (availableForWholesale && !(wholesalePrice > 0)) {
+    throw new HttpError(400, 'Please set a wholesale price for products shown on the wholesaler page.');
+  }
+  return {
+    weightKg: Math.max(0, parseFloat(body.weightKg) || 0),
+    availableForWholesale,
+    wholesalePrice: wholesalePrice > 0 ? wholesalePrice : null,
+  };
+}
+
 export async function createProduct(req, res, next) {
   try {
     const numericPrice = validateProductFields(req.body);
@@ -52,6 +80,7 @@ export async function createProduct(req, res, next) {
       isHarvestedToday: isHarvestedToday === 'true' || isHarvestedToday === true,
       stockQty: Math.max(0, parseInt(stockQty, 10) || 0),
       lowStockThreshold: Math.max(0, parseInt(lowStockThreshold, 10) || 10),
+      ...extraProductFields(req.body),
       image: req.file ? uploadedFilePublicPath('products', req.file) : null,
     });
 
@@ -79,6 +108,7 @@ export async function updateProduct(req, res, next) {
     existing.isHarvestedToday = isHarvestedToday === 'true' || isHarvestedToday === true;
     existing.stockQty = Math.max(0, parseInt(stockQty, 10) || 0);
     existing.lowStockThreshold = Math.max(0, parseInt(lowStockThreshold, 10) || 10);
+    Object.assign(existing, extraProductFields(req.body));
 
     if (req.file) {
       const oldImage = existing.image;

@@ -1,7 +1,7 @@
-export function Modal({ title, onClose, children, footer }) {
+export function Modal({ title, onClose, children, footer, size }) {
   return (
     <div className="modal-overlay" style={{ display: 'flex' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-container">
+      <div className={`modal-container ${size === 'lg' ? 'modal-lg' : ''}`}>
         <div className="modal-header">
           <h3>{title}</h3>
           <button className="close-modal" onClick={onClose} type="button">&times;</button>

@@ -3,12 +3,92 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { adminOrdersApi } from '../../api/admin/orders.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { peso } from '../../utils/peso.js';
-import { formatDateTime, formatDate, formatTime } from '../../utils/dateFormat.js';
+import { formatDateTime, formatDate, formatTime, orderNumberLabel } from '../../utils/dateFormat.js';
+import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { showToast } from '../../utils/toast.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { API_BASE } from '../../utils/apiBase.js';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
+// Self-pickup orders are never shipped.
+const PICKUP_STATUSES = STATUSES.filter((s) => s !== 'Shipped');
+
+const QUEUES = [
+  { key: 'lalamove', label: 'For Lalamove Booking', icon: 'fa-motorcycle', params: { needsBooking: '1' } },
+  { key: 'pickup', label: 'Self-Pickup', icon: 'fa-store', params: { deliveryMethod: 'Self-Pickup' } },
+];
+
+/** The orders waiting on the admin, so they can be worked through without going back to Orders. */
+function BookingQueue({ activeOrderId, onSelect, refreshKey }) {
+  const [queue, setQueue] = useState('lalamove');
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const { params } = QUEUES.find((q) => q.key === queue);
+    adminOrdersApi.list(params).then((data) => setOrders(data.items));
+  }, [queue, refreshKey]);
+
+  // Pickups that are already done or cancelled don't need attention.
+  const visible = queue === 'pickup' ? orders.filter((o) => !['Completed', 'Cancelled'].includes(o.status)) : orders;
+
+  return (
+    <div className="booking-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 15 }}>
+        <div className="booking-card-title" style={{ marginBottom: 0 }}>
+          <i className="fas fa-list-ul" /> Orders to Handle
+        </div>
+        <div className="status-filter-row">
+          {QUEUES.map((q) => (
+            <button key={q.key} type="button" className={`status-filter-pill ${queue === q.key ? 'active' : ''}`} onClick={() => setQueue(q.key)}>
+              <i className={`fas ${q.icon}`} /> {q.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>{queue === 'pickup' ? 'Pickup' : 'Date'}</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((o) => (
+              <tr key={o._id} style={o._id === activeOrderId ? { background: '#FBF4F5' } : undefined}>
+                <td style={{ fontWeight: 600 }}>{orderNumberLabel(o.orderNumber)}</td>
+                <td>{o.customerName}</td>
+                <td>{queue === 'pickup' && o.pickupDate ? `${formatDate(o.pickupDate)} ${formatTime(o.pickupTime)}` : formatDate(o.orderDate)}</td>
+                <td>
+                  <AdminStatusPill status={o.payment?.status || 'Pending'} />
+                </td>
+                <td>
+                  <AdminStatusPill status={o.status} />
+                </td>
+                <td>
+                  <button type="button" className="btn btn-outline" style={{ padding: '6px 12px' }} onClick={() => onSelect(o._id)}>
+                    Open
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {visible.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 25 }}>
+                  {queue === 'pickup' ? 'No pickups waiting.' : 'No Lalamove orders waiting to be booked.'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 const STYLE = `
 .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
@@ -47,8 +127,9 @@ const STYLE = `
 `;
 
 export default function DeliveryBooking() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const orderId = searchParams.get('order_id');
+  const [queueRefresh, setQueueRefresh] = useState(0);
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);
@@ -63,6 +144,7 @@ export default function DeliveryBooking() {
       setOrder(data.order);
       setStatusValue(data.order.status);
     });
+    setQueueRefresh((n) => n + 1);
   }
 
   useEffect(load, [orderId]);
@@ -136,13 +218,12 @@ export default function DeliveryBooking() {
         }
       />
 
+      <BookingQueue activeOrderId={orderId} onSelect={(id) => setSearchParams({ order_id: id })} refreshKey={queueRefresh} />
+
       {!order ? (
-        <div className="booking-card" style={{ textAlign: 'center', padding: '60px 30px' }}>
-          <i className="far fa-file-alt" style={{ fontSize: 40, color: 'var(--text-muted)', marginBottom: 15 }} />
-          <p style={{ color: 'var(--text-muted)' }}>
-            No order selected. Open an order from the <Link to="/admin/orders">Orders</Link> page to view its delivery booking and update
-            its status.
-          </p>
+        <div className="booking-card" style={{ textAlign: 'center', padding: '40px 30px' }}>
+          <i className="far fa-hand-pointer" style={{ fontSize: 32, color: 'var(--text-muted)', marginBottom: 12 }} />
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>Open an order above to book its delivery and update its status.</p>
         </div>
       ) : (
         <div className="booking-grid">
@@ -228,7 +309,7 @@ export default function DeliveryBooking() {
                   <div className="label-group">
                     <label>Update Status</label>
                     <select className="form-control" value={statusValue} onChange={(e) => setStatusValue(e.target.value)}>
-                      {STATUSES.map((s) => (
+                      {(order.deliveryMethod === 'Self-Pickup' ? PICKUP_STATUSES : STATUSES).map((s) => (
                         <option key={s} value={s}>
                           {s}
                         </option>
@@ -304,6 +385,15 @@ export default function DeliveryBooking() {
                     </div>
                   </div>
 
+                  <div className="alert-box" style={{ background: '#F9FAFB', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}>
+                    <i className="fas fa-weight-hanging" />
+                    <span>
+                      {order.totalWeightKg || 0} kg &middot; vehicle <strong>{order.lalamoveServiceType || 'MOTORCYCLE'}</strong> &middot; fee{' '}
+                      {peso(order.deliveryFee)}
+                      {order.deliveryFeePayment === 'Rider' && <strong> &mdash; customer pays the rider in cash</strong>}
+                    </span>
+                  </div>
+
                   {order.deliveryLat && order.deliveryLng && (
                     <div className="alert-box">
                       <i className="fas fa-map-marked-alt" />
@@ -342,6 +432,19 @@ export default function DeliveryBooking() {
                         <i className="fas fa-times-circle" /> {cancelling ? 'Cancelling...' : 'Cancel Booking'}
                       </button>
                     )
+                  ) : order.payment?.status !== 'Verified' ? (
+                    <>
+                      <div className="alert-box" style={{ background: '#FEF3C7', borderColor: '#FDE68A', color: '#92400E' }}>
+                        <i className="fas fa-lock" />
+                        <span>
+                          Verify this order's GCash payment first before booking a rider. Payment status:{' '}
+                          <strong>{order.payment?.status || 'Pending'}</strong>. <Link to="/admin/payments">Go to Payments</Link>
+                        </span>
+                      </div>
+                      <button className="btn-book" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                        <i className="fas fa-truck" /> Book with Lalamove
+                      </button>
+                    </>
                   ) : (
                     <button className="btn-book" onClick={handleBookCourier} disabled={booking}>
                       <i className="fas fa-truck" /> {booking ? 'Booking...' : 'Book with Lalamove'}
@@ -358,8 +461,8 @@ export default function DeliveryBooking() {
               <div className="delivery-info-content">
                 <h4>Keep the Customer Updated</h4>
                 <p>
-                  The status you set here shows up live on the customer's order tracking page, in the same Pending &rarr; Confirmed
-                  &rarr; Processing &rarr; Shipped &rarr; Completed order.
+                  The status you set here shows up live on the customer's order tracking page: Pending &rarr; Confirmed &rarr; Processing
+                  &rarr; Shipped &rarr; Completed. Self-pickup orders skip Shipped.
                 </p>
               </div>
             </div>

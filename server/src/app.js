@@ -63,7 +63,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/admin/products', adminProductsRouter);
-app.use('/api/wholesale-inquiries', wholesaleRouter);
+app.use('/api/wholesaler-applications', wholesaleRouter);
 app.use('/api/farm-visits', farmVisitsRouter);
 app.use('/api/education-posts', educationRouter);
 app.use('/api/loyalty', loyaltyRouter);
@@ -78,7 +78,7 @@ app.use('/api/admin/reports', adminReportsRouter);
 app.use('/api/admin/settings', adminSettingsRouter);
 app.use('/api/admin/education-posts', adminEducationRouter);
 app.use('/api/admin/farm-visits', adminFarmVisitsRouter);
-app.use('/api/admin/wholesale-inquiries', adminWholesaleRouter);
+app.use('/api/admin/wholesaler-applications', adminWholesaleRouter);
 app.use('/api/webhooks', webhooksRouter);
 
 // Only relevant for a single-service deploy (this Express app also serving the

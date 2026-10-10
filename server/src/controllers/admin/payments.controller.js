@@ -1,19 +1,49 @@
-import { Order } from '../../models/index.js';
+import { Order, PAYMENT_STATUS_VALUES } from '../../models/index.js';
 import { HttpError } from '../../utils/httpError.js';
 
-export async function listPendingPayments(req, res) {
-  const orders = await Order.find({ 'payment.status': 'Pending' })
-    .populate('customer', 'firstName lastName')
-    .sort({ 'payment.createdAt': 1 });
-  res.json({ success: true, orders });
-}
+const PER_PAGE = 20;
 
-export async function listPaymentHistory(req, res) {
-  const orders = await Order.find({})
-    .populate('customer', 'firstName lastName')
-    .sort({ 'payment.createdAt': -1 })
-    .limit(50);
-  res.json({ success: true, orders });
+/**
+ * One list for every GCash payment (pending ones first, so they're reviewed
+ * from here directly), filterable by payment status.
+ */
+export async function listPayments(req, res) {
+  const { status } = req.query;
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const filter = PAYMENT_STATUS_VALUES.includes(status) ? { 'payment.status': status } : {};
+
+  const [orders, total, pendingCount] = await Promise.all([
+    Order.aggregate([
+      { $match: filter },
+      { $addFields: { pendingFirst: { $cond: [{ $eq: ['$payment.status', 'Pending'] }, 0, 1] } } },
+      { $sort: { pendingFirst: 1, 'payment.createdAt': -1 } },
+      { $skip: (page - 1) * PER_PAGE },
+      { $limit: PER_PAGE },
+      { $lookup: { from: 'users', localField: 'customer', foreignField: '_id', as: 'customer' } },
+      // Keep orders whose customer account was deleted.
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          orderNumber: 1,
+          totalAmount: 1,
+          deliveryFee: 1,
+          deliveryFeePayment: 1,
+          payment: 1,
+          'customer.firstName': 1,
+          'customer.lastName': 1,
+        },
+      },
+    ]),
+    Order.countDocuments(filter),
+    Order.countDocuments({ 'payment.status': 'Pending' }),
+  ]);
+
+  res.json({
+    success: true,
+    orders,
+    pendingCount,
+    pagination: { page, perPage: PER_PAGE, total, totalPages: Math.max(1, Math.ceil(total / PER_PAGE)) },
+  });
 }
 
 /**

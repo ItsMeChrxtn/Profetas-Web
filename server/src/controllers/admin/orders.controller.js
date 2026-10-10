@@ -7,8 +7,16 @@ import { FARM_PICKUP } from '../../services/delivery.service.js';
 
 const PER_PAGE = 15;
 
+// 'All' lists orders by where they are in the workflow, newest first within each.
+const STATUS_ORDER = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
+
+// Self-pickup orders never ship, so they skip the Shipped status.
+export function statusesFor(deliveryMethod) {
+  return deliveryMethod === 'Self-Pickup' ? ORDER_STATUS_VALUES.filter((s) => s !== 'Shipped') : ORDER_STATUS_VALUES;
+}
+
 export async function listOrders(req, res) {
-  const { q, status } = req.query;
+  const { q, status, deliveryMethod, needsBooking } = req.query;
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
 
   const pipeline = [
@@ -18,6 +26,13 @@ export async function listOrders(req, res) {
 
   const match = {};
   if (status && ORDER_STATUS_VALUES.includes(status)) match.status = status;
+  if (['Lalamove', 'Self-Pickup'].includes(deliveryMethod)) match.deliveryMethod = deliveryMethod;
+  // Delivery Booking queue: Lalamove orders that still need a rider.
+  if (needsBooking === '1') {
+    match.deliveryMethod = 'Lalamove';
+    match.trackingNumber = null;
+    match.status = { $nin: ['Completed', 'Cancelled'] };
+  }
 
   const qTrimmed = q?.trim();
   if (qTrimmed) {
@@ -27,7 +42,10 @@ export async function listOrders(req, res) {
   }
   if (Object.keys(match).length) pipeline.push({ $match: match });
 
-  pipeline.push({ $sort: { orderDate: -1 } });
+  pipeline.push(
+    { $addFields: { statusRank: { $indexOfArray: [STATUS_ORDER, '$status'] } } },
+    { $sort: { statusRank: 1, orderDate: -1 } }
+  );
 
   const countPipeline = [...pipeline, { $count: 'total' }];
   const pagePipeline = [
@@ -41,6 +59,10 @@ export async function listOrders(req, res) {
         totalAmount: 1,
         status: 1,
         'payment.status': 1,
+        deliveryMethod: 1,
+        trackingNumber: 1,
+        pickupDate: 1,
+        pickupTime: 1,
         customerName: { $concat: ['$customer.firstName', ' ', '$customer.lastName'] },
       },
     },
@@ -57,17 +79,18 @@ export async function listOrders(req, res) {
 }
 
 export async function getOrder(req, res) {
-  const order = await Order.findById(req.params.id).populate('customer', 'firstName lastName email contactNumber');
+  const order = await Order.findById(req.params.id).populate('customer', 'firstName lastName email contactNumber isWholesaler businessName');
   if (!order) throw new HttpError(404, 'Order not found.');
   res.json({ success: true, order });
 }
 
 export async function updateOrderStatus(req, res) {
   const { status } = req.body;
-  if (!ORDER_STATUS_VALUES.includes(status)) throw new HttpError(400, 'Please choose a valid status.');
+  const existing = await Order.findById(req.params.id).select('deliveryMethod');
+  if (!existing) throw new HttpError(404, 'Order not found.');
+  if (!statusesFor(existing.deliveryMethod).includes(status)) throw new HttpError(400, 'Please choose a valid status.');
 
   const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
-  if (!order) throw new HttpError(404, 'Order not found.');
 
   appEvents.emit('order:updated', {
     customerId: order.customer,
@@ -92,8 +115,12 @@ export async function bookCourier(req, res) {
   if (order.deliveryLat == null || order.deliveryLng == null) {
     throw new HttpError(400, 'This order has no pinned delivery location to book a courier to.');
   }
+  if (order.payment?.status !== 'Verified') {
+    throw new HttpError(400, "Verify this order's GCash payment first before booking a rider.");
+  }
 
   const quotation = await getLalamoveQuotation({
+    serviceType: order.lalamoveServiceType || undefined,
     pickup: FARM_PICKUP,
     dropoff: { lat: order.deliveryLat, lng: order.deliveryLng, address: order.deliveryAddress || 'Delivery address' },
   });

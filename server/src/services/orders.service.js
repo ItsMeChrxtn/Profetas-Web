@@ -4,6 +4,7 @@ import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../utils/httpError.js';
 import { decrementStockOrThrow } from './stock.service.js';
 import { appEvents } from '../utils/eventBus.js';
+import { unitPriceFor } from './pricing.service.js';
 
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -21,10 +22,20 @@ function stockStatusFor(qty, threshold) {
  * insufficient), then inserts the order with server-computed totals. The
  * client's cart is only ever treated as a set of {productId, quantity}
  * intents - prices/names/totals are always re-derived here from live
- * Product data, never trusted from the request. deliveryFee is server-derived
- * too (a live Lalamove quote, or 0 for pickup).
+ * Product data, never trusted from the request. deliveryFee and the Lalamove
+ * vehicle are server-derived too (a live quote, or 0 for pickup).
  */
-export async function placeOrder({ customerId, items, deliveryMethod, deliveryFee, deliveryDetails, payment }) {
+export async function placeOrder({
+  customerId,
+  items,
+  deliveryMethod,
+  deliveryFee,
+  deliveryFeePayment = 'GCash',
+  lalamove = {},
+  isWholesaler = false,
+  deliveryDetails,
+  payment,
+}) {
   if (!Array.isArray(items) || items.length === 0) {
     throw new HttpError(400, 'Your cart is empty.');
   }
@@ -48,13 +59,14 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryFe
         }
 
         const product = await decrementStockOrThrow(productId, qty, session);
-        const lineSubtotal = round2(product.price * qty);
+        const unitPrice = unitPriceFor(product, isWholesaler);
+        const lineSubtotal = round2(unitPrice * qty);
         subtotal = round2(subtotal + lineSubtotal);
 
         lineItems.push({
           product: product._id,
           productName: product.name,
-          unitPrice: product.price,
+          unitPrice,
           quantity: qty,
           subtotal: lineSubtotal,
         });
@@ -75,6 +87,8 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryFe
       }
 
       const totalAmount = round2(subtotal + deliveryFee);
+      // When the rider collects the delivery fee in cash, GCash only covers the items.
+      const amountDueViaGcash = deliveryFeePayment === 'Rider' ? subtotal : totalAmount;
       const orderNumber = await nextSequence('orderNumber', session);
 
       const [created] = await Order.create(
@@ -88,12 +102,16 @@ export async function placeOrder({ customerId, items, deliveryMethod, deliveryFe
             totalAmount,
             status: 'Pending',
             deliveryMethod,
+            deliveryFeePayment,
+            totalWeightKg: lalamove.weightKg || 0,
+            lalamoveServiceType: lalamove.serviceType || null,
+            isWholesaleOrder: isWholesaler,
             ...deliveryDetails,
             payment: {
               method: 'GCash',
               referenceNumber: payment.referenceNumber || null,
               receiptImage: payment.receiptImage || null,
-              amount: totalAmount,
+              amount: amountDueViaGcash,
               status: 'Pending',
             },
           },

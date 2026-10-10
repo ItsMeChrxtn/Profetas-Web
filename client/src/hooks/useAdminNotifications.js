@@ -9,14 +9,14 @@ const MAX_NOTIFICATIONS = 20;
 // Mirrors the icons/labels already used for these sections in navItems.js.
 const TYPE_META = {
   order: { icon: 'fa-shopping-bag', bg: 'var(--success-bg)', color: 'var(--success-text)' },
-  wholesale: { icon: 'fa-truck-loading', bg: 'var(--info-bg)', color: 'var(--info-text)' },
+  wholesale: { icon: 'fa-handshake', bg: 'var(--info-bg)', color: 'var(--info-text)' },
   farmvisit: { icon: 'fa-tractor', bg: 'var(--warning-bg)', color: 'var(--warning-text)' },
   lowstock: { icon: 'fa-exclamation-triangle', bg: 'var(--danger-bg)', color: 'var(--danger-text)', toast: 'warning' },
 };
 
 /** Keeps a live SSE connection to /api/admin/notifications/stream so the admin
  * bell updates the moment a customer places a retail order, submits a
- * wholesale inquiry, or requests a farm visit - no page reload needed. */
+ * wholesaler application, or requests a farm visit - no page reload needed. */
 export function useAdminNotifications(enabled) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -49,8 +49,8 @@ export function useAdminNotifications(enabled) {
       addNotification(
         'wholesale',
         `wholesale-${inquiry._id}`,
-        `New wholesale inquiry from ${inquiry.name} (${inquiry.location})`,
-        '/admin/wholesale-inquiries'
+        `New wholesaler application from ${inquiry.name} (${inquiry.location})`,
+        '/admin/wholesaler-applications'
       );
     });
 

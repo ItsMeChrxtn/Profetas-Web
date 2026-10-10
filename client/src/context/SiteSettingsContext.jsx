@@ -2,7 +2,16 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { settingsApi } from '../api/settings.js';
 
 const SiteSettingsContext = createContext(null);
-const DEFAULTS = { chatStatus: 'offline', facebookUrl: '', shopeeUrl: '', gcashNumber: '' };
+const DEFAULTS = {
+  chatStatus: 'offline',
+  facebookUrl: '',
+  shopeeUrl: '',
+  gcashNumber: '',
+  heroImages: [],
+  glimpseImages: [],
+  aboutText: '',
+  aboutImage: null,
+};
 
 // A real React Context, not react-router's useOutletContext(): that mechanism only
 // reaches routes rendered directly by the Outlet that received the context prop -

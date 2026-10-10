@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
 import { cartApi } from '../../api/cart.js';
 import { ordersApi } from '../../api/orders.js';
@@ -13,10 +13,19 @@ import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 const DELIVERY_METHODS = ['Lalamove', 'Self-Pickup'];
 const GCASH_QR_IMAGE = '/images/gcash-qr.png';
 
+/** Just the {productId, quantity} intents the server re-prices itself. */
+function orderItems(items) {
+  return (items || []).map((item) => ({ productId: item.productId, quantity: item.quantity }));
+}
+
 export default function Checkout() {
   const settings = useSiteSettings();
-  const { asItemsArray, clear } = useCart();
+  const { asItemsArray, removeItems } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Cart passes the ticked lines, Buy Now passes one product; otherwise check out the whole cart.
+  const requestedItems = location.state?.items || null;
+  const fromCart = !requestedItems || Boolean(location.state?.fromCart);
   const mapRef = useRef(null);
 
   const [items, setItems] = useState(null);
@@ -30,17 +39,19 @@ export default function Checkout() {
   const [position, setPosition] = useState(null);
   const [referenceNumber, setReferenceNumber] = useState('');
   const [receiptFile, setReceiptFile] = useState(null);
+  // 'Rider' = pay the delivery fee in cash to the Lalamove rider instead of via GCash.
+  const [feePayment, setFeePayment] = useState('GCash');
 
   const [findingAddress, setFindingAddress] = useState(false);
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  // Live Lalamove price for the pinned location: { fee, loading, error }.
+  // Live Lalamove price for the pinned location and order weight: { fee, vehicleLabel, weightKg, loading, error }.
   const [quote, setQuote] = useState({ fee: null, loading: false, error: null });
   const [quoteNonce, setQuoteNonce] = useState(0);
 
   useEffect(() => {
-    if (deliveryMethod !== 'Lalamove' || !position) {
+    if (deliveryMethod !== 'Lalamove' || !position || !items) {
       setQuote({ fee: null, loading: false, error: null });
       return;
     }
@@ -49,20 +60,23 @@ export default function Checkout() {
     // Debounced so dragging/clicking around the map doesn't fire a quote per click.
     const timer = setTimeout(() => {
       ordersApi
-        .deliveryQuote({ lat: position[0], lng: position[1], address: deliveryAddress })
-        .then((data) => !cancelled && setQuote({ fee: data.fee, loading: false, error: null }))
+        .deliveryQuote({ lat: position[0], lng: position[1], address: deliveryAddress, items: orderItems(items) })
+        .then(
+          (data) =>
+            !cancelled && setQuote({ ...data, loading: false, error: null })
+        )
         .catch((err) => !cancelled && setQuote({ fee: null, loading: false, error: err.message }));
     }, 500);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-    // Address text is only a label for Lalamove; the price depends on the pin.
+    // Address text is only a label for Lalamove; the price depends on the pin and the items' weight.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deliveryMethod, position, quoteNonce]);
+  }, [deliveryMethod, position, items, quoteNonce]);
 
   useEffect(() => {
-    const requested = asItemsArray();
+    const requested = requestedItems || asItemsArray();
     if (requested.length === 0) {
       navigate('/cart');
       return;
@@ -157,7 +171,7 @@ export default function Checkout() {
     }
 
     const formData = new FormData();
-    formData.append('items', JSON.stringify(asItemsArray()));
+    formData.append('items', JSON.stringify(orderItems(items)));
     formData.append('deliveryMethod', deliveryMethod);
     if (deliveryMethod === 'Self-Pickup') {
       formData.append('pickupDate', pickupDate);
@@ -168,6 +182,7 @@ export default function Checkout() {
       formData.append('deliveryLat', position[0]);
       formData.append('deliveryLng', position[1]);
       formData.append('expectedDeliveryFee', quote.fee);
+      formData.append('deliveryFeePayment', feePayment);
     }
     formData.append('referenceNumber', referenceNumber);
     if (receiptFile) formData.append('receiptImage', receiptFile);
@@ -175,7 +190,7 @@ export default function Checkout() {
     setSubmitting(true);
     try {
       const data = await ordersApi.place(formData);
-      clear();
+      if (fromCart) removeItems(items.map((item) => String(item.productId)));
       showToast('success', 'Order placed! We will verify your GCash payment shortly.');
       navigate(`/track-order?highlight=${data.order.orderNumber}`);
     } catch (err) {
@@ -198,6 +213,9 @@ export default function Checkout() {
   let lalamoveFeeLabel = 'Based on distance';
   if (quote.loading) lalamoveFeeLabel = 'Calculating fee...';
   else if (quote.fee != null) lalamoveFeeLabel = `${peso(quote.fee)} fee`;
+
+  const payFeeToRider = isLalamove && feePayment === 'Rider';
+  const amountViaGcash = payFeeToRider ? subtotal : subtotal + fee;
 
   let summaryFeeLabel = peso(fee);
   if (isLalamove && quote.loading) summaryFeeLabel = 'Calculating...';
@@ -309,6 +327,76 @@ export default function Checkout() {
                 <div className="small text-muted">
                   {position ? `Pinned: ${position[0].toFixed(5)}, ${position[1].toFixed(5)}` : 'No location pinned yet.'}
                 </div>
+                {quote.fee != null && (
+                  <div className="fee-breakdown">
+                    <div className="fee-breakdown-title">
+                      <i className="fas fa-calculator me-2" />
+                      How your delivery fee is computed
+                    </div>
+                    <div className="fee-breakdown-facts">
+                      <div>
+                        <span>Order weight</span>
+                        <strong>{quote.weightKg} kg</strong>
+                      </div>
+                      <div>
+                        <span>Vehicle</span>
+                        <strong>
+                          {quote.vehicleLabel} <small>(up to {quote.vehicleMaxKg} kg)</small>
+                        </strong>
+                      </div>
+                      {quote.distanceKm != null && (
+                        <div>
+                          <span>Distance</span>
+                          <strong>{quote.distanceKm} km</strong>
+                        </div>
+                      )}
+                    </div>
+                    <table className="fee-breakdown-table">
+                      <tbody>
+                        {(quote.breakdown || []).map((line) => (
+                          <tr key={line.key}>
+                            <td>
+                              {line.label}
+                              {line.key === 'extraMileage' && quote.distanceKm ? (
+                                <small className="d-block text-muted">Farm in Tres Cruces, Tanza &rarr; your pin ({quote.distanceKm} km)</small>
+                              ) : null}
+                            </td>
+                            <td>{peso(line.amount)}</td>
+                          </tr>
+                        ))}
+                        <tr className="fee-breakdown-total">
+                          <td>Delivery Fee</td>
+                          <td>{peso(quote.fee)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="small text-muted mt-2">
+                      The vehicle is picked from your order's weight; heavier orders need a bigger vehicle with a higher fare. Rates come
+                      live from Lalamove.
+                    </div>
+                  </div>
+                )}
+                {quote.fee != null && (
+                  <div className="mt-3">
+                    <label className="form-label">How will you pay the delivery fee?</label>
+                    <div className="d-flex flex-column gap-2">
+                      <label className="fee-pay-option">
+                        <input type="radio" name="fee_payment" checked={feePayment === 'GCash'} onChange={() => setFeePayment('GCash')} />
+                        <span>
+                          <strong>Include it in my GCash payment</strong>
+                          <span className="d-block small text-muted">Pay items + delivery fee together via GCash.</span>
+                        </span>
+                      </label>
+                      <label className="fee-pay-option">
+                        <input type="radio" name="fee_payment" checked={feePayment === 'Rider'} onChange={() => setFeePayment('Rider')} />
+                        <span>
+                          <strong>Pay the rider in cash</strong>
+                          <span className="d-block small text-muted">GCash covers the items only. Hand {peso(quote.fee)} to the rider upon delivery.</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                )}
                 {quote.error && (
                   <div className="small text-danger mt-1">
                     {quote.error}{' '}
@@ -334,7 +422,8 @@ export default function Checkout() {
                 <div className="gcash-steps">
                   <div className="gcash-amount">
                     <span className="small">Amount to pay</span>
-                    <strong>{feeReady ? peso(subtotal + fee) : '—'}</strong>
+                    <strong>{feeReady ? peso(amountViaGcash) : '—'}</strong>
+                    {payFeeToRider && <span className="small">Items only &mdash; delivery fee is paid to the rider.</span>}
                     {!feeReady && <span className="small">Pin your delivery location to see your total.</span>}
                   </div>
                   <ol className="small mb-0">
@@ -387,6 +476,12 @@ export default function Checkout() {
                 <span className="text-muted">Delivery Fee</span>
                 <span>{summaryFeeLabel}</span>
               </div>
+              {payFeeToRider && (
+                <div className="small text-muted text-end mb-2">
+                  <i className="fas fa-money-bill-wave me-1" />
+                  Paid in cash to the rider
+                </div>
+              )}
               <hr />
               <div className="d-flex justify-content-between mb-3 fs-5">
                 <span className="fw-bold">Total</span>

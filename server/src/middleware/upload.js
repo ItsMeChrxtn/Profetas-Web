@@ -6,6 +6,8 @@ import multer from 'multer';
 import { fileTypeFromBuffer } from 'file-type';
 import { HttpError } from '../utils/httpError.js';
 import { UploadedFile } from '../models/UploadedFile.js';
+import { env } from '../config/env.js';
+import { verifyToken } from '../utils/jwt.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Only used for files uploaded before images moved into Mongo (local dev copies).
@@ -17,6 +19,9 @@ const ALLOWED_MIME_EXT = {
   'image/webp': 'webp',
 };
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, matches the original PHP upload cap
+
+// Wholesaler documents (valid IDs, permits) are only served to admins.
+const PRIVATE_SUBFOLDERS = ['wholesale'];
 
 // Files are held in memory, then verifyImageMagicBytes saves them to Mongo -
 // Render's local disk does not survive a redeploy.
@@ -32,50 +37,64 @@ function makeUploader(subfolder, filenamePrefix) {
     },
   });
 
+  const tagFiles = (req) => {
+    for (const file of allFiles(req)) file.uploadTarget = { subfolder, filenamePrefix };
+  };
+  const wrap = (handler) => (req, res, next) =>
+    handler(req, res, (err) => {
+      if (!err) tagFiles(req);
+      next(err);
+    });
+
   return {
-    single(fieldName) {
-      const handler = upload.single(fieldName);
-      return (req, res, next) =>
-        handler(req, res, (err) => {
-          if (!err && req.file) req.file.uploadTarget = { subfolder, filenamePrefix };
-          next(err);
-        });
-    },
+    single: (fieldName) => wrap(upload.single(fieldName)),
+    fields: (spec) => wrap(upload.fields(spec)),
   };
 }
 
 export const uploadProductImage = makeUploader('products', 'product');
 export const uploadEducationImage = makeUploader('education', 'edu');
 export const uploadReceiptImage = makeUploader('receipts', 'receipt');
+export const uploadSiteImage = makeUploader('site', 'site');
+export const uploadWholesaleDocs = makeUploader('wholesale', 'doc');
+
+/** req.file and every entry of req.files (from .fields()), as one list. */
+function allFiles(req) {
+  const files = req.file ? [req.file] : [];
+  if (req.files) files.push(...Object.values(req.files).flat());
+  return files;
+}
 
 /**
  * multer's file.mimetype is client-supplied and spoofable. This re-checks the
  * actual file bytes (the Node equivalent of PHP's mime_content_type() sniff),
- * rejects on mismatch, and otherwise stores the image in Mongo and sets
- * req.file.filename. Call after the uploader's .single(...) middleware in the
- * route chain; no-ops if no file.
+ * rejects on mismatch, and otherwise stores each image in Mongo and sets
+ * file.filename. Call after the uploader's .single()/.fields() middleware in
+ * the route chain; no-ops if no file.
  */
-export function verifyImageMagicBytes(req, res, next) {
-  if (!req.file) return next();
+export async function verifyImageMagicBytes(req, res, next) {
+  const files = allFiles(req);
+  try {
+    const types = await Promise.all(files.map((file) => fileTypeFromBuffer(file.buffer)));
+    if (types.some((type) => !type || !ALLOWED_MIME_EXT[type.mime])) {
+      return res.status(400).json({ success: false, message: 'Uploaded file is not a valid JPEG, PNG, or WEBP image.' });
+    }
 
-  fileTypeFromBuffer(req.file.buffer)
-    .then(async (type) => {
-      const ext = type && ALLOWED_MIME_EXT[type.mime];
-      if (!ext) {
-        return res.status(400).json({ success: false, message: 'Uploaded file is not a valid JPEG, PNG, or WEBP image.' });
-      }
-      const { subfolder, filenamePrefix } = req.file.uploadTarget;
-      req.file.filename = `${filenamePrefix}_${crypto.randomUUID()}.${ext}`;
+    for (const [i, file] of files.entries()) {
+      const { subfolder, filenamePrefix } = file.uploadTarget;
+      file.filename = `${filenamePrefix}_${crypto.randomUUID()}.${ALLOWED_MIME_EXT[types[i].mime]}`;
       await UploadedFile.create({
-        path: uploadedFilePublicPath(subfolder, req.file),
-        contentType: type.mime,
-        size: req.file.size,
-        data: req.file.buffer,
+        path: uploadedFilePublicPath(subfolder, file),
+        contentType: types[i].mime,
+        size: file.size,
+        data: file.buffer,
       });
-      req.file.buffer = null;
-      next();
-    })
-    .catch(next);
+      file.buffer = null;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
 }
 
 export function uploadedFilePublicPath(subfolder, file) {
@@ -93,14 +112,31 @@ export async function deleteUploadedFile(publicPath) {
   }
 }
 
+function isAdminRequest(req) {
+  const token = req.cookies?.[env.cookieName];
+  if (!token) return false;
+  try {
+    return verifyToken(token).role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
 /** Express handler for GET /uploads/* - streams the image from Mongo. */
 export async function serveUploadedFile(req, res, next) {
   try {
+    const subfolder = req.path.split('/')[2];
+    const isPrivate = PRIVATE_SUBFOLDERS.includes(subfolder);
+    if (isPrivate && !isAdminRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Not allowed.' });
+    }
+
     const file = await UploadedFile.findOne({ path: req.path });
     if (!file) return next();
     res.set({
       'Content-Type': file.contentType,
-      'Cache-Control': 'public, max-age=31536000, immutable', // filenames are unique UUIDs
+      // Filenames are unique UUIDs, so public images can be cached forever.
+      'Cache-Control': isPrivate ? 'private, no-store' : 'public, max-age=31536000, immutable',
       'X-Content-Type-Options': 'nosniff',
     });
     res.send(file.data);

@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     contactNumber: { type: String, trim: true, maxlength: 20 },
     role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
+    // Set when an admin approves a WholesalerApplication; unlocks wholesale pricing.
+    isWholesaler: { type: Boolean, default: false },
+    businessName: { type: String, trim: true, maxlength: 120 },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
 );

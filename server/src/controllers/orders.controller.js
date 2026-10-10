@@ -1,6 +1,7 @@
 import { Order, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { placeOrder } from '../services/orders.service.js';
-import { quoteLalamoveFee } from '../services/delivery.service.js';
+import { quoteLalamoveFee, totalWeightKg } from '../services/delivery.service.js';
+import { isWholesalerUser } from '../services/pricing.service.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../middleware/upload.js';
 import { HttpError } from '../utils/httpError.js';
 import { appEvents } from '../utils/eventBus.js';
@@ -63,12 +64,15 @@ export async function createOrder(req, res, next) {
     // customer already sent GCash for the total they saw, so refuse the order if
     // Lalamove's price moved in between instead of silently charging a new total.
     let deliveryFee = 0;
+    let lalamove = {};
     if (req.body.deliveryMethod === 'Lalamove') {
-      deliveryFee = await quoteLalamoveFee({
+      lalamove = await quoteLalamoveFee({
         lat: deliveryDetails.deliveryLat,
         lng: deliveryDetails.deliveryLng,
         address: deliveryDetails.deliveryAddress,
+        weightKg: await totalWeightKg(items),
       });
+      deliveryFee = lalamove.fee;
       const expected = Number(req.body.expectedDeliveryFee);
       if (Number.isFinite(expected) && Math.abs(expected - deliveryFee) >= 0.01) {
         throw new HttpError(
@@ -83,6 +87,9 @@ export async function createOrder(req, res, next) {
       items,
       deliveryMethod: req.body.deliveryMethod,
       deliveryFee,
+      deliveryFeePayment: req.body.deliveryMethod === 'Lalamove' && req.body.deliveryFeePayment === 'Rider' ? 'Rider' : 'GCash',
+      lalamove,
+      isWholesaler: await isWholesalerUser(req.user.id),
       deliveryDetails,
       payment: { referenceNumber: referenceNumber?.trim() || null, receiptImage: receiptPublicPath },
     });
@@ -102,13 +109,15 @@ export async function createOrder(req, res, next) {
   }
 }
 
+/** Fee for the pinned location; the cart items set the weight, which picks the vehicle. */
 export async function getDeliveryQuote(req, res) {
-  const fee = await quoteLalamoveFee({
+  const quote = await quoteLalamoveFee({
     lat: parseFloat(req.body.lat),
     lng: parseFloat(req.body.lng),
     address: req.body.address,
+    weightKg: await totalWeightKg(Array.isArray(req.body.items) ? req.body.items : []),
   });
-  res.json({ success: true, fee });
+  res.json({ success: true, ...quote });
 }
 
 /**

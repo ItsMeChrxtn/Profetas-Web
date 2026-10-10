@@ -27,6 +27,9 @@ function ProductFormModal({ product, onClose, onSaved }) {
     description: product?.description || '',
     status: product?.status || 'Active',
     isHarvestedToday: product?.isHarvestedToday || false,
+    weightKg: product?.weightKg ?? 0.5,
+    availableForWholesale: product?.availableForWholesale || false,
+    wholesalePrice: product?.wholesalePrice ?? '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -103,6 +106,30 @@ function ProductFormModal({ product, onClose, onSaved }) {
             <label>Stock Quantity</label>
             <input type="number" className="form-control" required value={form.stockQty} onChange={(e) => update('stockQty', e.target.value)} placeholder="0" />
           </div>
+        </div>
+        <div className="form-group">
+          <label>Weight per unit (kg)</label>
+          <input type="number" step="0.01" min="0" className="form-control" required value={form.weightKg} onChange={(e) => update('weightKg', e.target.value)} />
+          <small style={{ color: 'var(--text-muted)' }}>Used to pick the Lalamove vehicle and compute the delivery fee.</small>
+        </div>
+        <div className="form-group" style={{ background: '#F9FAFB', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              type="checkbox"
+              id="availableForWholesale"
+              checked={form.availableForWholesale}
+              onChange={(e) => update('availableForWholesale', e.target.checked)}
+            />
+            <label htmlFor="availableForWholesale" style={{ margin: 0 }}>
+              Show on the wholesaler page
+            </label>
+          </div>
+          {form.availableForWholesale && (
+            <div style={{ marginTop: 10 }}>
+              <label>Wholesale Price (₱)</label>
+              <input type="number" step="0.01" min="0" className="form-control" required value={form.wholesalePrice} onChange={(e) => update('wholesalePrice', e.target.value)} placeholder="0.00" />
+            </div>
+          )}
         </div>
         <div className="form-group">
           <label>Description</label>
@@ -264,7 +291,14 @@ export default function Products() {
                         alt=""
                       />
                     </td>
-                    <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>{product.name}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>
+                      {product.name}
+                      {product.availableForWholesale && (
+                        <span className="wholesaler-tag" title={`Wholesale ${peso(product.wholesalePrice)}`}>
+                          <i className="fas fa-handshake" /> Wholesale
+                        </span>
+                      )}
+                    </td>
                     <td>{product.category}</td>
                     <td style={{ fontWeight: 700 }}>
                       {peso(product.price)} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 11 }}>/ {product.unit}</span>

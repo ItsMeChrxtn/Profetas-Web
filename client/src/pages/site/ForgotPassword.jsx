@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { authApi } from '../../api/auth.js';
 import { showToast } from '../../utils/toast.js';
-import { PasswordInput, PasswordHints } from '../../components/site/PasswordInput.jsx';
+import { PasswordInput, PasswordLengthHint, PasswordMatchHint } from '../../components/site/PasswordInput.jsx';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -107,13 +107,12 @@ export default function ForgotPassword() {
               <div className="mb-3">
                 <label className="form-label">New Password</label>
                 <PasswordInput minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              <div className="mb-2">
-                <label className="form-label">Confirm New Password</label>
-                <PasswordInput minLength={8} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                <PasswordLengthHint password={password} />
               </div>
               <div className="mb-4">
-                <PasswordHints password={password} confirmPassword={confirmPassword} />
+                <label className="form-label">Confirm New Password</label>
+                <PasswordInput minLength={8} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                <PasswordMatchHint password={password} confirmPassword={confirmPassword} />
               </div>
               <button type="submit" className="btn btn-farm-primary w-100 mb-3" disabled={submitting || otp.length !== 6}>
                 {submitting ? 'Resetting...' : 'Reset Password'}
