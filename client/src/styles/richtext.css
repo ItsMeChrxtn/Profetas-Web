@@ -1,0 +1,61 @@
+/* Rich text editor (admin) and rendered rich text (site). */
+.rte {
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+}
+.rte-toolbar button,
+.rte-color {
+  width: 32px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: #374151;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.rte-toolbar button:hover,
+.rte-color:hover { background: #fff; border-color: #E5E7EB; }
+.rte-toolbar select {
+  height: 30px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 0 6px;
+  background: #fff;
+}
+.rte-color input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.rte-sep { width: 1px; height: 20px; background: #E5E7EB; margin: 0 4px; }
+.rte-area {
+  padding: 12px 14px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.rte-area:empty::before { content: attr(data-placeholder); color: #9CA3AF; }
+
+.rich-text { line-height: 1.8; }
+.rich-text ul,
+.rich-text ol { padding-left: 1.4em; margin: 0.4em 0; }
+.rich-text p { margin: 0 0 0.6em; }

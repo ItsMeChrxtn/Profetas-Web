@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { farmVisitsApi } from '../../api/farmVisits.js';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { todayDateString } from '../../utils/dateFormat.js';
+import { todayDateString, formatDate } from '../../utils/dateFormat.js';
+import { VisitCalendar } from '../../components/VisitCalendar.jsx';
 
 export default function FarmVisit() {
   const { user } = useAuth();
@@ -17,6 +18,19 @@ export default function FarmVisit() {
   const [errors, setErrors] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Days that already have a confirmed visit - shown as occupied and not bookable.
+  const [occupied, setOccupied] = useState(new Set());
+
+  useEffect(() => {
+    farmVisitsApi.occupied().then((data) => setOccupied(new Set(data.dates)));
+  }, []);
+
+  const today = todayDateString();
+  function dayInfo(date) {
+    if (date < today) return { className: 'past', disabled: true };
+    if (occupied.has(date)) return { className: 'occupied', disabled: true, badge: 'Booked', title: 'Already booked' };
+    return { className: date === today ? 'today' : '' };
+  }
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -25,6 +39,10 @@ export default function FarmVisit() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErrors([]);
+    if (!form.visitDate) {
+      setErrors(['Please pick a visit date on the calendar.']);
+      return;
+    }
     setSubmitting(true);
     try {
       await farmVisitsApi.submit(form);
@@ -84,23 +102,24 @@ export default function FarmVisit() {
                 required
               />
             </div>
-            <div className="row g-3">
-              <div className="col-md-4 mb-3">
-                <label className="form-label">Visit Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  min={todayDateString()}
-                  value={form.visitDate}
-                  onChange={(e) => update('visitDate', e.target.value)}
-                  required
-                />
+            <div className="mb-3">
+              <label className="form-label">
+                Visit Date{' '}
+                <span className="text-muted fw-normal">{form.visitDate ? `- ${formatDate(form.visitDate)}` : '(pick an available day)'}</span>
+              </label>
+              <VisitCalendar selected={form.visitDate} onSelect={(date) => update('visitDate', date)} dayInfo={dayInfo} />
+              <div className="visit-calendar-legend">
+                <span style={{ '--swatch': '#fff', border: 0 }}>Available</span>
+                <span style={{ '--swatch': '#FEE2E2' }}>Occupied</span>
+                <span style={{ '--swatch': '#7B1E2B' }}>Your pick</span>
               </div>
-              <div className="col-md-4 mb-3">
+            </div>
+            <div className="row g-3">
+              <div className="col-md-6 mb-3">
                 <label className="form-label">Visit Time</label>
                 <input type="time" className="form-control" value={form.visitTime} onChange={(e) => update('visitTime', e.target.value)} required />
               </div>
-              <div className="col-md-4 mb-3">
+              <div className="col-md-6 mb-3">
                 <label className="form-label">Number of Visitors</label>
                 <input
                   type="number"

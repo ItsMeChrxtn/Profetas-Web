@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { educationApi } from '../../api/education.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { plainText } from '../../components/RichText.jsx';
 
 const CATEGORIES = ['Tutorial', 'Tip', 'Recipe'];
 
 function excerpt(content) {
-  const plain = content.replace(/\s+/g, ' ').trim();
+  const plain = plainText(content).replace(/\s+/g, ' ').trim();
   return plain.length > 90 ? `${plain.slice(0, 90)}...` : plain;
 }
 

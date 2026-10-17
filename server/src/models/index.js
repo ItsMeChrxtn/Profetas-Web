@@ -1,4 +1,4 @@
-export { User } from './User.js';
+export { User, ADMIN_ROLES } from './User.js';
 export { PendingRegistration } from './PendingRegistration.js';
 export { PasswordReset } from './PasswordReset.js';
 export { Product, PRODUCT_CATEGORY_VALUES } from './Product.js';

@@ -1,5 +1,8 @@
 import { Order, Product, User } from '../../models/index.js';
 
+// Archived products are out of the catalog, so they don't count toward stock figures.
+const NOT_ARCHIVED = { status: { $ne: 'Archived' } };
+
 export async function getDashboardStats(req, res) {
   const thirtyDaysAgo = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
   thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
@@ -8,9 +11,9 @@ export async function getDashboardStats(req, res) {
     await Promise.all([
       Order.countDocuments({}),
       Order.aggregate([{ $match: { status: { $ne: 'Cancelled' } } }, { $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
-      Product.countDocuments({}),
+      Product.countDocuments(NOT_ARCHIVED),
       User.countDocuments({ role: 'customer' }),
-      Product.countDocuments({ $expr: { $lte: ['$stockQty', '$lowStockThreshold'] } }),
+      Product.countDocuments({ ...NOT_ARCHIVED, $expr: { $lte: ['$stockQty', '$lowStockThreshold'] } }),
       Order.find({}).sort({ orderDate: -1 }).limit(5).populate('customer', 'firstName lastName'),
       Order.aggregate([
         { $unwind: '$items' },
@@ -24,6 +27,7 @@ export async function getDashboardStats(req, res) {
         { $sort: { _id: 1 } },
       ]),
       Product.aggregate([
+        { $match: NOT_ARCHIVED },
         {
           $group: {
             _id: null,

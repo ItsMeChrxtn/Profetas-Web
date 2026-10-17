@@ -100,8 +100,29 @@ export default function Faq() {
           </ul>
         </FaqItem>
         <FaqItem question="Can I order in bulk?">
-          Yes &mdash; <Link to="/wholesale">become our wholesaler</Link> to get wholesale prices on bulk orders. See the wholesale questions
-          below.
+          Yes &mdash; <Link to="/#become-wholesaler">become our wholesaler</Link> to order our wholesale products in bulk. See the
+          wholesale questions below.
+        </FaqItem>
+      </div>
+
+      <h5 className="fw-bold mb-3">
+        <i className="fas fa-undo-alt me-2" />Returns &amp; Replacements
+      </h5>
+      <div className="farm-card mb-4 p-0">
+        <FaqItem question="Can I get a refund?">
+          <strong>We don't offer refunds.</strong> If an item arrives damaged or unusable &mdash; for example, a{' '}
+          <strong>broken fruiting bag</strong> or a <strong>contaminated</strong> grow bag &mdash; we'll <strong>replace the item</strong>{' '}
+          instead.
+        </FaqItem>
+        <FaqItem question="How do I request a replacement?">
+          <ol className="mb-0">
+            <li>Take clear photos of the damaged item and its packaging as soon as you receive it.</li>
+            <li>
+              Send us your <strong>order number</strong> and the photos through our Facebook Page or the chat button, as soon as you
+              receive the order.
+            </li>
+            <li>Once we confirm the damage, we'll send or prepare a replacement of the same item.</li>
+          </ol>
         </FaqItem>
       </div>
 
@@ -112,15 +133,16 @@ export default function Faq() {
         <FaqItem question="How do I become a wholesaler?">
           <ol className="mb-0">
             <li>
-              <strong>Submit your application.</strong> Log in, go to <Link to="/wholesale">Become Our Wholesaler</Link>, and tap{' '}
-              <strong>Apply Now</strong>.
+              <strong>Submit your application.</strong> Scroll to <Link to="/#become-wholesaler">Become Our Wholesaler</Link> at the
+              bottom of the home page and tap <strong>Apply Now</strong> (you'll need to log in).
             </li>
             <li>
               <strong>Review process.</strong> Our team checks your information and documents and verifies that they are consistent.
             </li>
             <li>
               <strong>Get approved.</strong> Once approved, your account gets wholesaler status, a{' '}
-              <i className="fas fa-check-circle verified-check" /> verified badge, and wholesale pricing.
+              <i className="fas fa-check-circle verified-check" /> verified badge, and a <strong>Wholesale</strong> page with the products
+              available to wholesalers.
             </li>
           </ol>
         </FaqItem>
@@ -137,9 +159,9 @@ export default function Faq() {
         <FaqItem question="What happens if my application is not approved?">
           Your account stays a regular customer account, and we'll show you the reason. You can update your details and apply again.
         </FaqItem>
-        <FaqItem question="How do I order at wholesale prices?">
-          Once approved, the <Link to="/wholesale">wholesale page</Link> shows the products available for wholesale at their wholesale
-          price. Add them to your cart and check out as usual &mdash; the wholesale price is applied automatically.
+        <FaqItem question="How do I order wholesale products?">
+          Once approved, a <strong>Wholesale</strong> link appears in the menu. It lists the products available to wholesalers &mdash; add
+          them to your cart and check out as usual.
         </FaqItem>
       </div>
 

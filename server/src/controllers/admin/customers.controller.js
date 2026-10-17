@@ -1,4 +1,17 @@
-import { User } from '../../models/index.js';
+import { User, Order } from '../../models/index.js';
+import { HttpError } from '../../utils/httpError.js';
+import { sendEmail } from '../../utils/brevoEmail.js';
+
+// No login (or signup) within this window shows as Inactive.
+const INACTIVE_AFTER_DAYS = 90;
+
+/** Active / Inactive / Suspended, as shown in the Customers list. */
+export function customerStatus(user) {
+  if (user.accountStatus === 'Suspended') return 'Suspended';
+  const lastSeen = user.lastLoginAt || user.createdAt;
+  const cutoff = Date.now() - INACTIVE_AFTER_DAYS * 24 * 60 * 60 * 1000;
+  return lastSeen && new Date(lastSeen).getTime() >= cutoff ? 'Active' : 'Inactive';
+}
 
 const PER_PAGE = 15;
 
@@ -68,6 +81,8 @@ export async function listCustomers(req, res) {
           lastAddress: 1,
           isWholesaler: 1,
           businessName: 1,
+          accountStatus: 1,
+          lastLoginAt: 1,
         },
       },
     ]),
@@ -77,7 +92,76 @@ export async function listCustomers(req, res) {
   const total = countResult[0]?.total || 0;
   res.json({
     success: true,
-    items,
+    items: items.map((c) => ({ ...c, status: customerStatus(c) })),
     pagination: { page, perPage: PER_PAGE, total, totalPages: Math.max(1, Math.ceil(total / PER_PAGE)) },
   });
+}
+
+/** Profile, order history, total spent, and account (violation) history. */
+export async function getCustomer(req, res) {
+  const user = await User.findOne({ _id: req.params.id, role: 'customer' }).select('-passwordHash');
+  if (!user) throw new HttpError(404, 'Customer not found.');
+
+  const orders = await Order.find({ customer: user._id })
+    .sort({ orderDate: -1 })
+    .select('orderNumber orderDate totalAmount status deliveryMethod payment.status');
+  const totalSpent = orders.filter((o) => o.status !== 'Cancelled').reduce((sum, o) => sum + o.totalAmount, 0);
+
+  res.json({
+    success: true,
+    customer: { ...user.toJSON(), status: customerStatus(user) },
+    orders,
+    totalSpent: Math.round(totalSpent * 100) / 100,
+  });
+}
+
+/** Super admin: suspend or reinstate a customer, with a recorded reason. */
+export async function updateCustomerAccount(req, res) {
+  const { action, reason } = req.body;
+  if (!['suspend', 'unsuspend', 'warn'].includes(action)) throw new HttpError(400, 'Invalid action.');
+  if (!reason?.trim()) throw new HttpError(400, 'Please record a reason.');
+
+  const user = await User.findOne({ _id: req.params.id, role: 'customer' });
+  if (!user) throw new HttpError(404, 'Customer not found.');
+
+  if (action === 'suspend') {
+    user.accountStatus = 'Suspended';
+    user.suspensionReason = reason.trim();
+  } else if (action === 'unsuspend') {
+    user.accountStatus = 'Active';
+    user.suspensionReason = null;
+  }
+  const historyAction = { suspend: 'Suspended', unsuspend: 'Unsuspended', warn: 'Warning' }[action];
+  user.accountHistory.push({ action: historyAction, reason: reason.trim(), by: req.user.name });
+  await user.save();
+
+  res.json({ success: true, message: `Account ${historyAction.toLowerCase()}.` });
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+/** Super admin: email a customer about an order, a warning, or a suspension. */
+export async function contactCustomer(req, res) {
+  const { subject, message } = req.body;
+  if (!subject?.trim() || !message?.trim()) throw new HttpError(400, 'Please enter a subject and a message.');
+
+  const user = await User.findOne({ _id: req.params.id, role: 'customer' });
+  if (!user) throw new HttpError(404, 'Customer not found.');
+
+  await sendEmail({
+    to: user.email,
+    subject: subject.trim(),
+    htmlContent: `
+      <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto;">
+        <h2 style="color:#7B1E2B;">Profeta Integrated Farm</h2>
+        <p>Hi ${escapeHtml(user.firstName)},</p>
+        <p style="white-space: pre-line;">${escapeHtml(message.trim())}</p>
+      </div>`,
+  });
+
+  user.accountHistory.push({ action: 'Emailed', reason: subject.trim(), by: req.user.name });
+  await user.save();
+  res.json({ success: true, message: `Email sent to ${user.email}.` });
 }

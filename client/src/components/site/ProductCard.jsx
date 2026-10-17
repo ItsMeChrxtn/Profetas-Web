@@ -3,9 +3,14 @@ import { peso } from '../../utils/peso.js';
 import { StockBadge } from './StockBadge.jsx';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 
-export function ProductCard({ product, harvestedLabel = 'Harvested Today' }) {
+export function ProductCard({ product, harvestedLabel = 'Harvested Today', bestSeller = false }) {
   return (
     <div className="product-card">
+      {bestSeller && (
+        <span className="best-seller-badge">
+          <i className="fas fa-trophy" /> Best Seller
+        </span>
+      )}
       {product.isHarvestedToday && (
         <span className="harvested-badge">
           <i className="fas fa-seedling" /> {harvestedLabel}

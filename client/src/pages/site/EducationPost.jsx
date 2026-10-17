@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { educationApi } from '../../api/education.js';
 import { formatDate } from '../../utils/dateFormat.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { RichText } from '../../components/RichText.jsx';
 
 export default function EducationPost() {
   const { id } = useParams();
@@ -53,7 +54,7 @@ export default function EducationPost() {
         />
       )}
 
-      <div style={{ lineHeight: 1.8, whiteSpace: 'pre-line' }}>{post.content}</div>
+      <RichText value={post.content} />
 
       <Link to="/education" className="btn btn-farm-outline mt-4">
         <i className="fas fa-arrow-left me-2" />Back to Learn

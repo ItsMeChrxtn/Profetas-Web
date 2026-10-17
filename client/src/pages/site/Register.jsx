@@ -136,7 +136,7 @@ export default function Register() {
     <div className="container" style={{ maxWidth: 520, paddingTop: 40, paddingBottom: 60 }}>
       <div className="farm-card">
         <h2 className="section-title text-center">Create an Account</h2>
-        <p className="section-subtitle text-center">Join Profetas Farm to order, track deliveries, and earn loyalty vouchers.</p>
+        <p className="section-subtitle text-center">Join Profeta Integrated Farm to order and track your deliveries.</p>
 
         {errors.length > 0 && (
           <div className="alert alert-danger">

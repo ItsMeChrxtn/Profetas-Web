@@ -6,7 +6,7 @@ export async function listInventory(req, res) {
   const { q, stockStatus } = req.query;
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
 
-  const filter = {};
+  const filter = { status: { $ne: 'Archived' } };
   if (q?.trim()) filter.name = { $regex: q.trim(), $options: 'i' };
   if (stockStatus === 'out') {
     filter.stockQty = { $lte: 0 };

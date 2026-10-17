@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { adminCustomersApi } from '../../api/admin/customers.js';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
+import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
+import { CustomerDetailsModal, ManageCustomerModal, ContactCustomerModal } from '../../components/admin/CustomerModals.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { isSuperAdmin } from '../../utils/roles.js';
 import { peso } from '../../utils/peso.js';
-import { todayDateString } from '../../utils/dateFormat.js';
+import { todayDateString, formatDate } from '../../utils/dateFormat.js';
 import { toCsv, downloadCsv } from '../../utils/csv.js';
 import { downloadPdfTable } from '../../utils/pdf.js';
 import { showToast } from '../../utils/toast.js';
@@ -16,13 +20,18 @@ export default function Customers() {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
   const [exporting, setExporting] = useState(false);
+  const { user } = useAuth();
+  const superAdmin = isSuperAdmin(user);
+  // { type: 'view' | 'manage' | 'contact', customer }
+  const [modal, setModal] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     adminCustomersApi.list({ q, page }).then((data) => {
       setItems(data.items);
       setPagination(data.pagination);
     });
-  }, [q, page]);
+  }, [q, page, refreshKey]);
 
   async function fetchAllCustomers() {
     let allItems = [];
@@ -61,15 +70,6 @@ export default function Customers() {
       showToast('error', 'Could not export customers.');
     } finally {
       setExporting(false);
-    }
-  }
-
-  async function handleCopyEmail(email) {
-    try {
-      await navigator.clipboard.writeText(email);
-      showToast('success', `Copied ${email} to clipboard.`);
-    } catch (err) {
-      showToast('error', 'Could not copy email.');
     }
   }
 
@@ -117,7 +117,8 @@ export default function Customers() {
               <tr>
                 <th>Customer Name</th>
                 <th>Account Type</th>
-                <th>Location</th>
+                <th>Status</th>
+                <th>Last Login</th>
                 <th>Total Orders</th>
                 <th>Total Spent</th>
                 <th>Actions</th>
@@ -147,16 +148,27 @@ export default function Customers() {
                         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Regular</span>
                       )}
                     </td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 180 }}>
-                      {customer.lastAddress ? (customer.lastAddress.length > 40 ? `${customer.lastAddress.slice(0, 40)}...` : customer.lastAddress) : '—'}
+                    <td>
+                      <AdminStatusPill status={customer.status} />
                     </td>
+                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{customer.lastLoginAt ? formatDate(customer.lastLoginAt) : 'Never'}</td>
                     <td style={{ fontWeight: 600 }}>{customer.totalOrders}</td>
                     <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>{peso(customer.totalSpent)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 5 }}>
-                        <button type="button" className="btn btn-icon btn-outline" title="Copy email address" onClick={() => handleCopyEmail(customer.email)}>
-                          <i className="far fa-envelope" />
+                        <button type="button" className="btn btn-icon btn-outline" title="View details" onClick={() => setModal({ type: 'view', customer })}>
+                          <i className="far fa-eye" />
                         </button>
+                        {superAdmin && (
+                          <>
+                            <button type="button" className="btn btn-icon btn-outline" title="Manage account" onClick={() => setModal({ type: 'manage', customer })}>
+                              <i className="fas fa-user-shield" />
+                            </button>
+                            <button type="button" className="btn btn-icon btn-outline" title="Email customer" onClick={() => setModal({ type: 'contact', customer })}>
+                              <i className="far fa-envelope" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -164,7 +176,7 @@ export default function Customers() {
               })}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>
                     No customers yet.
                   </td>
                 </tr>
@@ -186,6 +198,12 @@ export default function Customers() {
           </div>
         </div>
       </div>
+
+      {modal?.type === 'view' && <CustomerDetailsModal customerId={modal.customer.id} onClose={() => setModal(null)} />}
+      {modal?.type === 'manage' && (
+        <ManageCustomerModal customerId={modal.customer.id} onClose={() => setModal(null)} onChanged={() => setRefreshKey((k) => k + 1)} />
+      )}
+      {modal?.type === 'contact' && <ContactCustomerModal customer={modal.customer} onClose={() => setModal(null)} />}
     </>
   );
 }

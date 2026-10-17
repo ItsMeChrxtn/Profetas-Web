@@ -29,7 +29,6 @@ function ProductFormModal({ product, onClose, onSaved }) {
     isHarvestedToday: product?.isHarvestedToday || false,
     weightKg: product?.weightKg ?? 0.5,
     availableForWholesale: product?.availableForWholesale || false,
-    wholesalePrice: product?.wholesalePrice ?? '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -124,12 +123,7 @@ function ProductFormModal({ product, onClose, onSaved }) {
               Show on the wholesaler page
             </label>
           </div>
-          {form.availableForWholesale && (
-            <div style={{ marginTop: 10 }}>
-              <label>Wholesale Price (₱)</label>
-              <input type="number" step="0.01" min="0" className="form-control" required value={form.wholesalePrice} onChange={(e) => update('wholesalePrice', e.target.value)} placeholder="0.00" />
-            </div>
-          )}
+          <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: 4 }}>Verified wholesalers will see this product on their wholesale page.</small>
         </div>
         <div className="form-group">
           <label>Description</label>
@@ -182,12 +176,14 @@ export default function Products() {
 
   useEffect(reload, [q, category, status, page]);
 
-  async function handleDelete(product) {
-    const confirmed = await confirmAction('Delete this product? This cannot be undone.', { confirmButtonText: 'Yes, delete it' });
+  async function handleArchive(product) {
+    const confirmed = await confirmAction(`Archive "${product.name}"? It will be hidden from the shop and can't be ordered. Past orders keep their details.`, {
+      confirmButtonText: 'Yes, archive it',
+    });
     if (!confirmed) return;
     try {
-      await adminProductsApi.remove(product._id);
-      showToast('success', 'Product deleted.');
+      const res = await adminProductsApi.archive(product._id);
+      showToast('success', res.message);
       reload();
     } catch (err) {
       showToast('error', err.message);
@@ -294,7 +290,7 @@ export default function Products() {
                     <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>
                       {product.name}
                       {product.availableForWholesale && (
-                        <span className="wholesaler-tag" title={`Wholesale ${peso(product.wholesalePrice)}`}>
+                        <span className="wholesaler-tag">
                           <i className="fas fa-handshake" /> Wholesale
                         </span>
                       )}
@@ -316,8 +312,8 @@ export default function Products() {
                         <button className="btn btn-icon btn-outline" onClick={() => setModal({ mode: 'edit', product })}>
                           <i className="far fa-edit" />
                         </button>
-                        <button className="btn btn-icon btn-outline text-danger" onClick={() => handleDelete(product)}>
-                          <i className="far fa-trash-alt" />
+                        <button className="btn btn-icon btn-outline text-danger" title="Archive" onClick={() => handleArchive(product)}>
+                          <i className="fas fa-archive" />
                         </button>
                       </div>
                     </td>

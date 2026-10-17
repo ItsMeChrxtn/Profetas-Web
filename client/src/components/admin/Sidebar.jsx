@@ -1,9 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { ADMIN_NAV_ITEMS } from './navItems.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { isSuperAdmin } from '../../utils/roles.js';
 
 export function Sidebar({ open, onNavigate }) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const navItems = ADMIN_NAV_ITEMS.filter((item) => !item.superOnly || isSuperAdmin(user));
   const location = useLocation();
 
   return (
@@ -13,13 +15,13 @@ export function Sidebar({ open, onNavigate }) {
           <div className="logo-badge">
             <img src="/logo.png" alt="Profeta Integrated Farm" className="logo-full-img" />
           </div>
-          <span className="portal-tag">ADMIN PORTAL</span>
+          <span className="portal-tag">{isSuperAdmin(user) ? 'SUPER ADMIN' : 'ADMIN PORTAL'}</span>
         </div>
       </div>
 
       <nav className="sidebar-nav">
         <ul>
-          {ADMIN_NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             // admin.css targets `.sidebar-nav li.active a`, not the anchor itself,
             // so the active class has to live on the <li> - NavLink's className
             // callback only ever sets it on the <a> it renders.

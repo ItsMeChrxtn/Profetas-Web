@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { isAdmin } from '../../utils/roles.js';
 import { PasswordInput } from '../../components/site/PasswordInput.jsx';
 
 export default function Login() {
@@ -16,7 +17,7 @@ export default function Login() {
   // no race between this guard re-rendering right after login() sets `user` and a
   // separate navigate() call - both would otherwise fire off the same state update.
   if (user) {
-    const target = user.role === 'admin' ? '/admin/dashboard' : location.state?.from?.pathname || '/';
+    const target = isAdmin(user) ? '/admin/dashboard' : location.state?.from?.pathname || '/';
     return <Navigate to={target} replace />;
   }
 

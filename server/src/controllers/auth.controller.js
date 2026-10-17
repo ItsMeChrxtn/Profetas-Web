@@ -27,6 +27,12 @@ function publicUser(user) {
 
 const MIN_PASSWORD_LENGTH = 8;
 
+export function suspendedMessage(user) {
+  const text = user.suspensionReason?.trim();
+  const reason = text ? ` Reason: ${text}${/[.!?]$/.test(text) ? '' : '.'}` : '';
+  return `This account has been suspended.${reason} Please contact Profeta Integrated Farm for help.`;
+}
+
 function otpEmailHtml(firstName, otp, { heading = 'Verify your email', intro = 'Use this code to finish creating your Profetas Farm account:' } = {}) {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
@@ -184,6 +190,12 @@ export async function login(req, res) {
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return res.status(401).json({ success: false, message: genericError });
   }
+  if (user.accountStatus === 'Suspended') {
+    return res.status(403).json({ success: false, message: suspendedMessage(user) });
+  }
+
+  user.lastLoginAt = new Date();
+  await user.save();
 
   setAuthCookie(res, signToken(user));
   res.json({ success: true, user: publicUser(user) });
@@ -196,9 +208,9 @@ export function logout(req, res) {
 
 export async function me(req, res) {
   const user = await User.findById(req.user.id);
-  if (!user) {
+  if (!user || user.accountStatus === 'Suspended') {
     clearAuthCookie(res);
-    return res.status(401).json({ success: false, message: 'Please log in to continue.' });
+    return res.status(401).json({ success: false, message: user ? suspendedMessage(user) : 'Please log in to continue.' });
   }
   res.json({ success: true, user: publicUser(user) });
 }

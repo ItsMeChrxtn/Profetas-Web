@@ -59,7 +59,7 @@ export async function placeOrder({
         }
 
         const product = await decrementStockOrThrow(productId, qty, session);
-        const unitPrice = unitPriceFor(product, isWholesaler);
+        const unitPrice = unitPriceFor(product);
         const lineSubtotal = round2(unitPrice * qty);
         subtotal = round2(subtotal + lineSubtotal);
 

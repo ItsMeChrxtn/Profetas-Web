@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import adminCssHref from '../styles/admin.css?url';
 import { useStylesheets } from '../utils/useStylesheets.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { isAdmin } from '../utils/roles.js';
 import { useAdminNotifications } from '../hooks/useAdminNotifications.js';
 import { Sidebar } from '../components/admin/Sidebar.jsx';
 import { TopHeader } from '../components/admin/Header.jsx';
@@ -11,7 +12,7 @@ export function AdminLayout() {
   const stylesReady = useStylesheets([adminCssHref]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
-  const notifications = useAdminNotifications(user?.role === 'admin');
+  const notifications = useAdminNotifications(isAdmin(user));
 
   if (!stylesReady) return null;
 

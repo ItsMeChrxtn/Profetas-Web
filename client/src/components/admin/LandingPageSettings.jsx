@@ -3,6 +3,7 @@ import { adminSettingsApi, adminLandingApi } from '../../api/admin/settings.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { showToast } from '../../utils/toast.js';
 import { confirmAction } from '../../utils/confirm.js';
+import { RichTextEditor } from '../RichText.jsx';
 
 function UploadButton({ slot, label, onUploaded, disabled }) {
   const [uploading, setUploading] = useState(false);
@@ -153,7 +154,9 @@ export function LandingPageSettings() {
         </div>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           {settings.aboutImage && <Thumb src={settings.aboutImage} onRemove={() => remove('about', settings.aboutImage)} />}
-          <textarea className="form-control" rows={7} style={{ flex: 1, minWidth: 260 }} value={aboutText} onChange={(e) => setAboutText(e.target.value)} />
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <RichTextEditor value={aboutText} onChange={setAboutText} />
+          </div>
         </div>
       </div>
 

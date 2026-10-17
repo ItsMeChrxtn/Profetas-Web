@@ -50,7 +50,6 @@ export default function ProductDetail() {
 
   const status = stockStatus(product.stockQty, product.lowStockThreshold);
   const inStock = status !== 'Out of Stock';
-  const wholesalePrice = user?.isWholesaler && product.availableForWholesale && product.wholesalePrice > 0 ? product.wholesalePrice : null;
 
   // Buy Now skips the cart: checkout gets just this item.
   function handleBuyNow() {
@@ -101,15 +100,10 @@ export default function ProductDetail() {
           </h1>
           <div className="mb-3">
             <span className="fs-3 fw-800" style={{ color: 'var(--primary-green)', fontWeight: 800 }}>
-              {peso(wholesalePrice ?? product.price)}
+              {peso(product.price)}
             </span>
             <span className="text-muted">/ {product.unit}</span>
-            {wholesalePrice && (
-              <div className="small">
-                <i className="fas fa-check-circle verified-check me-1" />
-                Wholesale price &middot; retail <s>{peso(product.price)}</s>
-              </div>
-            )}
+
           </div>
           <div className="mb-3 d-inline-block">
             <StockBadge stockQty={product.stockQty} lowStockThreshold={product.lowStockThreshold} />

@@ -3,12 +3,12 @@ import { connectDb } from '../src/config/db.js';
 import { User } from '../src/models/index.js';
 import { hashPassword } from '../src/utils/password.js';
 
-// Creates an admin account, or promotes/resets an existing user with that email.
-// Usage: npm run create-admin -- <email> <password> [firstName] [lastName]
-const [email, password, firstName = 'Farm', lastName = 'Administrator'] = process.argv.slice(2);
+// Creates a staff account, or promotes/resets an existing user with that email.
+// Usage: npm run create-admin -- <email> <password> [role: superadmin|admin] [firstName] [lastName]
+const [email, password, role = 'admin', firstName = 'Farm', lastName = 'Administrator'] = process.argv.slice(2);
 
-if (!email || !password) {
-  console.error('Usage: npm run create-admin -- <email> <password> [firstName] [lastName]');
+if (!email || !password || !['superadmin', 'admin'].includes(role)) {
+  console.error('Usage: npm run create-admin -- <email> <password> [role: superadmin|admin] [firstName] [lastName]');
   process.exit(1);
 }
 
@@ -17,7 +17,7 @@ try {
   const user = await User.findOneAndUpdate(
     { email: email.toLowerCase().trim() },
     {
-      $set: { passwordHash: await hashPassword(password), role: 'admin' },
+      $set: { passwordHash: await hashPassword(password), role },
       $setOnInsert: { firstName, lastName },
     },
     { upsert: true, new: true, runValidators: true }

@@ -1,10 +1,11 @@
 import { User } from '../models/index.js';
 
-/** Approved wholesalers pay the wholesale price on products the farm offers wholesale. */
-export function unitPriceFor(product, isWholesaler) {
-  if (isWholesaler && product.availableForWholesale && product.wholesalePrice > 0) {
-    return product.wholesalePrice;
-  }
+/**
+ * Everyone pays the listed price. (A separate wholesale price was dropped -
+ * wholesalers get access to the wholesale products instead.) Kept as the one
+ * place to change if per-customer pricing comes back.
+ */
+export function unitPriceFor(product) {
   return product.price;
 }
 

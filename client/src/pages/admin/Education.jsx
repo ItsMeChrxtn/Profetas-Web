@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/dateFormat.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { RichTextEditor } from '../../components/RichText.jsx';
 
 const CATEGORIES = ['Tutorial', 'Tip', 'Recipe'];
 
@@ -73,7 +74,7 @@ function PostFormModal({ post, onClose, onSaved }) {
         </div>
         <div className="form-group">
           <label>Content</label>
-          <textarea className="form-control" rows={6} required value={form.content} onChange={(e) => update('content', e.target.value)} />
+          <RichTextEditor value={form.content} onChange={(html) => update('content', html)} />
         </div>
         <div className="form-group">
           <label>Image {post?.image ? '(leave blank to keep current photo)' : ''}</label>

@@ -14,12 +14,31 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true },
     contactNumber: { type: String, trim: true, maxlength: 20 },
-    role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
+    // superadmin: full access (reports, archive, user management, landing page).
+    // admin: day-to-day operations only.
+    role: { type: String, enum: ['superadmin', 'admin', 'customer'], default: 'customer' },
     // Set when an admin approves a WholesalerApplication; unlocks wholesale pricing.
     isWholesaler: { type: Boolean, default: false },
     businessName: { type: String, trim: true, maxlength: 120 },
+    // Super admins can suspend a customer; a suspended account cannot log in or order.
+    accountStatus: { type: String, enum: ['Active', 'Suspended'], default: 'Active' },
+    suspensionReason: { type: String, default: null },
+    lastLoginAt: { type: Date, default: null },
+    // Suspensions, reinstatements and warnings, newest last.
+    accountHistory: {
+      type: [
+        {
+          action: { type: String, enum: ['Suspended', 'Unsuspended', 'Warning', 'Emailed'] },
+          reason: String,
+          by: String,
+          at: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
 );
 
+export const ADMIN_ROLES = ['superadmin', 'admin'];
 export const User = mongoose.model('User', userSchema);

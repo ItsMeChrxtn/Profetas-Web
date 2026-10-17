@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import { RequireAuth } from './routes/RequireAuth.jsx';
-import { RequireAdmin } from './routes/RequireAdmin.jsx';
+import { RequireAdmin, RequireSuperAdmin } from './routes/RequireAdmin.jsx';
 import { SiteLayout } from './layouts/SiteLayout.jsx';
 import { AdminLayout } from './layouts/AdminLayout.jsx';
 
@@ -19,7 +19,6 @@ import FarmVisit from './pages/site/FarmVisit.jsx';
 import MyFarmVisits from './pages/site/MyFarmVisits.jsx';
 import Education from './pages/site/Education.jsx';
 import EducationPost from './pages/site/EducationPost.jsx';
-import Loyalty from './pages/site/Loyalty.jsx';
 import Account from './pages/site/Account.jsx';
 import ForgotPassword from './pages/site/ForgotPassword.jsx';
 import Faq from './pages/site/Faq.jsx';
@@ -36,6 +35,8 @@ import AdminFarmVisits from './pages/admin/FarmVisits.jsx';
 import AdminWholesalerApplications from './pages/admin/WholesalerApplications.jsx';
 import AdminReports from './pages/admin/Reports.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
+import AdminProductArchive from './pages/admin/ProductArchive.jsx';
+import AdminUsers from './pages/admin/AdminUsers.jsx';
 
 export default function App() {
   return (
@@ -62,7 +63,6 @@ export default function App() {
                 <Route path="wholesale" element={<Wholesale />} />
                 <Route path="checkout" element={<Checkout />} />
                 <Route path="my-farm-visits" element={<MyFarmVisits />} />
-                <Route path="loyalty" element={<Loyalty />} />
                 <Route path="account" element={<Account />} />
               </Route>
             </Route>
@@ -79,8 +79,12 @@ export default function App() {
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="education-posts" element={<AdminEducation />} />
                 <Route path="farm-visits" element={<AdminFarmVisits />} />
-                <Route path="wholesaler-applications" element={<AdminWholesalerApplications />} />
-                <Route path="reports" element={<AdminReports />} />
+                <Route element={<RequireSuperAdmin />}>
+                  <Route path="reports" element={<AdminReports />} />
+                  <Route path="wholesaler-applications" element={<AdminWholesalerApplications />} />
+                  <Route path="product-archive" element={<AdminProductArchive />} />
+                  <Route path="users" element={<AdminUsers />} />
+                </Route>
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
             </Route>

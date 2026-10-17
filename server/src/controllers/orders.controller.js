@@ -1,4 +1,4 @@
-import { Order, DELIVERY_METHOD_VALUES } from '../models/index.js';
+import { Order, User, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { placeOrder } from '../services/orders.service.js';
 import { quoteLalamoveFee, totalWeightKg } from '../services/delivery.service.js';
 import { isWholesalerUser } from '../services/pricing.service.js';
@@ -59,6 +59,12 @@ export async function createOrder(req, res, next) {
     }
 
     const deliveryDetails = validateAndBuildDeliveryDetails(req.body);
+
+    // The session token is stateless, so re-check a suspension made after login.
+    const account = await User.findById(req.user.id).select('accountStatus');
+    if (account?.accountStatus === 'Suspended') {
+      throw new HttpError(403, 'This account has been suspended and cannot place orders.');
+    }
 
     // Re-quote server-side rather than trusting the fee the browser showed. The
     // customer already sent GCash for the total they saw, so refuse the order if

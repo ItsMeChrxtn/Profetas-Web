@@ -29,11 +29,29 @@ export function attachUserIfPresent(req, res, next) {
   next();
 }
 
+const ADMIN_ROLES = ['superadmin', 'admin'];
+
+export function isAdminRole(role) {
+  return ADMIN_ROLES.includes(role);
+}
+
+/** Admins and super admins. */
 export function requireAdmin(req, res, next) {
   requireAuth(req, res, (err) => {
     if (err) return next(err);
-    if (req.user.role !== 'admin') {
+    if (!isAdminRole(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Admin access required.' });
+    }
+    next();
+  });
+}
+
+/** Super admins only - reports, product archive, user management, landing page. */
+export function requireSuperAdmin(req, res, next) {
+  requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ success: false, message: 'Only the super admin can do this.' });
     }
     next();
   });

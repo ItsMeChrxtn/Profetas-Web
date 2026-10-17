@@ -6,7 +6,6 @@ import { useCart } from '../../context/CartContext.jsx';
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/shop', label: 'Shop' },
-  { to: '/wholesale', label: 'Become Our Wholesaler' },
   { to: '/education', label: 'Learn' },
   { to: '/farm-visit', label: 'Visit the Farm' },
   { to: '/track-order', label: 'Track Order' },
@@ -43,7 +42,7 @@ export function Navbar({ notifications = emptyNotifications }) {
 
           <div className={`collapse navbar-collapse d-lg-flex flex-grow-1 justify-content-between ${menuOpen ? 'show' : ''}`}>
             <ul className="nav ms-lg-4">
-              {NAV_LINKS.map((link) => (
+              {(user?.isWholesaler ? [...NAV_LINKS.slice(0, 2), { to: '/wholesale', label: 'Wholesale' }, ...NAV_LINKS.slice(2)] : NAV_LINKS).map((link) => (
                 <li className="nav-item" key={link.to}>
                   <NavLink
                     to={link.to}
@@ -104,11 +103,6 @@ export function Navbar({ notifications = emptyNotifications }) {
                       <li>
                         <Link className="dropdown-item" to="/account" onClick={() => setProfileOpen(false)}>
                           <i className="fas fa-id-card me-2" />My Account
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" to="/loyalty" onClick={() => setProfileOpen(false)}>
-                          <i className="fas fa-award me-2" />Loyalty & Vouchers
                         </Link>
                       </li>
                       <li>

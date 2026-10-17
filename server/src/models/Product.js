@@ -11,13 +11,16 @@ const productSchema = new mongoose.Schema(
     unit: { type: String, default: 'unit', trim: true, maxlength: 20 },
     image: { type: String, default: null },
     isHarvestedToday: { type: Boolean, default: false },
-    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+    // Archived = removed from the shop and from new orders, but kept so past orders stay intact.
+    status: { type: String, enum: ['Active', 'Inactive', 'Archived'], default: 'Active' },
+    archivedAt: { type: Date, default: null },
     stockQty: { type: Number, default: 0, min: 0 },
     lowStockThreshold: { type: Number, default: 10, min: 0 },
     // Per unit; summed per order to pick a Lalamove vehicle that can carry it.
     weightKg: { type: Number, default: 0.5, min: 0 },
-    // Shown on the wholesaler page to approved wholesalers, at wholesalePrice.
+    // Shown on the wholesaler page to approved wholesalers.
     availableForWholesale: { type: Boolean, default: false },
+    // No longer used (wholesalers pay the listed price); kept so older records still load.
     wholesalePrice: { type: Number, default: null, min: 0 },
   },
   { timestamps: true }

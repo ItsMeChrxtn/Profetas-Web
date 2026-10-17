@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
 import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { RichText } from '../../components/RichText.jsx';
+import { WholesaleInfo } from '../../components/site/WholesaleInfo.jsx';
 
 const HERO_SLIDE_MS = 6000;
 
@@ -66,7 +68,15 @@ function ProductRow({ title, subtitle, icon, items }) {
 export default function Home() {
   const settings = useSiteSettings();
   const { user } = useAuth();
+  const location = useLocation();
   const [harvestedToday, setHarvestedToday] = useState([]);
+
+  // Links like /#become-wholesaler need a manual scroll in a single-page app.
+  useEffect(() => {
+    if (!location.hash) return undefined;
+    const timer = setTimeout(() => document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' }), 150);
+    return () => clearTimeout(timer);
+  }, [location.hash]);
   const [featured, setFeatured] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [popular, setPopular] = useState([]);
@@ -102,11 +112,11 @@ export default function Home() {
               Shop Now <i className="fas fa-arrow-right ms-1" />
             </Link>
             <Link
-              to="/wholesale"
+              to={user?.isWholesaler ? '/wholesale' : '/#become-wholesaler'}
               className="btn btn-farm-outline"
               style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.5)' }}
             >
-              Become Our Wholesaler
+              {user?.isWholesaler ? 'Wholesale Products' : 'Become Our Wholesaler'}
             </Link>
           </div>
           <div className="social-pills">
@@ -142,8 +152,17 @@ export default function Home() {
       <ProductRow title="Popular This Month" subtitle="What customers have been ordering lately." icon="fa-fire" items={popular} />
 
       <section className="mt-5">
-        <h2 className="section-title">Featured Products</h2>
-        <p className="section-subtitle">Fresh from the farm, added recently to our catalog.</p>
+        <div className="section-head">
+          <div>
+            <h2 className="section-title">Featured Products</h2>
+            <p className="section-subtitle">Fresh from the farm, added recently to our catalog.</p>
+          </div>
+          {user && (
+            <Link to="/shop" className="btn btn-farm-primary">
+              View Full Catalog <i className="fas fa-arrow-right ms-1" />
+            </Link>
+          )}
+        </div>
 
         <div className="row g-4">
           {featured.map((p) => (
@@ -153,12 +172,8 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="text-center mt-4">
-          {user ? (
-            <Link to="/shop" className="btn btn-farm-primary">
-              View Full Catalog <i className="fas fa-arrow-right ms-1" />
-            </Link>
-          ) : (
+        {!user && (
+          <div className="text-center mt-4">
             <div className="farm-card d-inline-block px-4">
               <p className="mb-2 fw-bold">Want to see all our products?</p>
               <p className="small text-muted mb-3">Log in or create a free account to browse the full catalog and start ordering.</p>
@@ -171,10 +186,28 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
+      {settings.aboutText && (
+        <section className="mt-5">
+          <div className="farm-card about-card">
+            <div className="row g-4 align-items-center">
+              {settings.aboutImage && (
+                <div className="col-lg-5">
+                  <img src={mediaUrl(settings.aboutImage)} alt="Profeta Integrated Farm" className="about-image" loading="lazy" />
+                </div>
+              )}
+              <div className={settings.aboutImage ? 'col-lg-7' : 'col-12'}>
+                <div className="about-eyebrow">About the Company</div>
+                <h2 className="section-title mb-3">Profeta Integrated Farm</h2>
+                <RichText value={settings.aboutText} className="about-text" />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {glimpse.length > 0 && (
         <section className="mt-5">
           <h2 className="section-title">
@@ -194,24 +227,7 @@ export default function Home() {
         </section>
       )}
 
-      {settings.aboutText && (
-        <section className="mt-5 mb-5">
-          <div className="farm-card about-card">
-            <div className="row g-4 align-items-center">
-              {settings.aboutImage && (
-                <div className="col-lg-5">
-                  <img src={mediaUrl(settings.aboutImage)} alt="Profeta Integrated Farm" className="about-image" loading="lazy" />
-                </div>
-              )}
-              <div className={settings.aboutImage ? 'col-lg-7' : 'col-12'}>
-                <div className="about-eyebrow">About the Company</div>
-                <h2 className="section-title mb-3">Profeta Integrated Farm</h2>
-                <p className="about-text">{settings.aboutText}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      <WholesaleInfo />
     </div>
   );
 }

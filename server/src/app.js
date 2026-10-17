@@ -17,7 +17,6 @@ import { adminProductsRouter } from './routes/admin/products.routes.js';
 import { wholesaleRouter } from './routes/wholesale.routes.js';
 import { farmVisitsRouter } from './routes/farmVisits.routes.js';
 import { educationRouter } from './routes/education.routes.js';
-import { loyaltyRouter } from './routes/loyalty.routes.js';
 import { settingsRouter } from './routes/settings.routes.js';
 import { adminOrdersRouter } from './routes/admin/orders.routes.js';
 import { adminNotificationsRouter } from './routes/admin/notifications.routes.js';
@@ -31,6 +30,7 @@ import { adminEducationRouter } from './routes/admin/education.routes.js';
 import { adminFarmVisitsRouter } from './routes/admin/farmVisits.routes.js';
 import { adminWholesaleRouter } from './routes/admin/wholesale.routes.js';
 import { webhooksRouter } from './routes/webhooks.routes.js';
+import { adminUsersRouter } from './routes/admin/users.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -66,7 +66,6 @@ app.use('/api/admin/products', adminProductsRouter);
 app.use('/api/wholesaler-applications', wholesaleRouter);
 app.use('/api/farm-visits', farmVisitsRouter);
 app.use('/api/education-posts', educationRouter);
-app.use('/api/loyalty', loyaltyRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/admin/orders', adminOrdersRouter);
 app.use('/api/admin/notifications', adminNotificationsRouter);
@@ -79,6 +78,7 @@ app.use('/api/admin/settings', adminSettingsRouter);
 app.use('/api/admin/education-posts', adminEducationRouter);
 app.use('/api/admin/farm-visits', adminFarmVisitsRouter);
 app.use('/api/admin/wholesaler-applications', adminWholesaleRouter);
+app.use('/api/admin/users', adminUsersRouter);
 app.use('/api/webhooks', webhooksRouter);
 
 // Only relevant for a single-service deploy (this Express app also serving the

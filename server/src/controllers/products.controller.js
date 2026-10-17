@@ -105,14 +105,14 @@ export async function listPopular(req, res) {
   res.json({ success: true, items });
 }
 
-/** Wholesale catalog - approved wholesalers only, priced at the wholesale price. */
+/** Wholesale catalog - products marked for wholesalers; approved wholesalers only. */
 export async function listWholesaleProducts(req, res) {
   if (!(await isWholesalerUser(req.user.id))) {
     throw new HttpError(403, 'The wholesale catalog is for approved wholesalers only.');
   }
   const items = await Product.aggregate([
-    { $match: { status: 'Active', availableForWholesale: true, wholesalePrice: { $gt: 0 } } },
-    { $addFields: { stockRank: STOCK_RANK, retailPrice: '$price', price: '$wholesalePrice' } },
+    { $match: { status: 'Active', availableForWholesale: true } },
+    { $addFields: { stockRank: STOCK_RANK } },
     { $sort: { category: 1, stockRank: 1, name: 1 } },
   ]);
   res.json({ success: true, items });

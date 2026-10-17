@@ -15,6 +15,9 @@ export async function createFarmVisit(req, res) {
   if (visitDate < todayDateString()) {
     throw new HttpError(400, 'Visit date cannot be in the past.');
   }
+  if (await FarmVisit.exists({ visitDate, status: 'Confirmed' })) {
+    throw new HttpError(409, 'That date is already booked. Please choose another day.');
+  }
 
   const visit = await FarmVisit.create({
     customer: req.user?.id || null,
@@ -35,6 +38,12 @@ export async function createFarmVisit(req, res) {
   });
 
   res.status(201).json({ success: true, visit });
+}
+
+/** Dates (YYYY-MM-DD) that already have a confirmed visit, for the booking calendar. Names stay private. */
+export async function getOccupiedDates(req, res) {
+  const dates = await FarmVisit.distinct('visitDate', { status: 'Confirmed', visitDate: { $gte: todayDateString() } });
+  res.json({ success: true, dates: dates.sort() });
 }
 
 export async function getMyFarmVisits(req, res) {

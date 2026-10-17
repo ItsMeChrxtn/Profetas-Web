@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
 import { cartApi } from '../../api/cart.js';
 import { ordersApi } from '../../api/orders.js';
@@ -487,6 +487,13 @@ export default function Checkout() {
                 <span className="fw-bold">Total</span>
                 <span className="fw-bold" style={{ color: 'var(--primary-green)' }}>
                   {peso(subtotal + fee)}
+                </span>
+              </div>
+              <div className="policy-note mb-3">
+                <i className="fas fa-undo-alt me-2" />
+                <span>
+                  <strong>No refunds.</strong> Damaged items (e.g. a broken fruiting bag or contaminated grow bag) are{' '}
+                  <strong>replaced</strong>. <Link to="/faq">Learn more</Link>
                 </span>
               </div>
               <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting || !feeReady}>

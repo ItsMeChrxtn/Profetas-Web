@@ -116,7 +116,7 @@ function isAdminRequest(req) {
   const token = req.cookies?.[env.cookieName];
   if (!token) return false;
   try {
-    return verifyToken(token).role === 'admin';
+    return ['superadmin', 'admin'].includes(verifyToken(token).role);
   } catch {
     return false;
   }

@@ -24,6 +24,14 @@ export default function Shop() {
   const [searchInput, setSearchInput] = useState(initialQ);
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ totalPages: 1 });
+  const [bestSellers, setBestSellers] = useState([]);
+
+  useEffect(() => {
+    productsApi.bestSellers().then((data) => setBestSellers(data.items));
+  }, []);
+  const bestSellerIds = new Set(bestSellers.map((p) => p._id));
+  // The Best Sellers row only shows on the unfiltered first page.
+  const showBestSellers = bestSellers.length > 0 && !category && !initialQ && page === 1;
 
   useEffect(() => {
     setSearchInput(initialQ);
@@ -73,6 +81,22 @@ export default function Shop() {
         </form>
       </div>
 
+      {showBestSellers && (
+        <section className="best-seller-strip mb-4">
+          <h5 className="fw-bold mb-3">
+            <i className="fas fa-trophy me-2" style={{ color: 'var(--accent-amber)' }} />
+            Best Sellers
+          </h5>
+          <div className="row g-4">
+            {bestSellers.map((p) => (
+              <div className="col-6 col-md-4 col-lg-3" key={p._id}>
+                <ProductCard product={p} harvestedLabel="Today" bestSeller />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {items.length === 0 ? (
         <div className="farm-card text-center py-5">
           <i className="fas fa-seedling fa-2x mb-3" style={{ color: 'var(--text-muted)' }} />
@@ -83,7 +107,7 @@ export default function Shop() {
           <div className="row g-4">
             {items.map((p) => (
               <div className="col-6 col-md-4 col-lg-3" key={p._id}>
-                <ProductCard product={p} harvestedLabel="Today" />
+                <ProductCard product={p} harvestedLabel="Today" bestSeller={bestSellerIds.has(p._id)} />
               </div>
             ))}
           </div>

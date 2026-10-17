@@ -3,4 +3,5 @@ import { api } from './client.js';
 export const farmVisitsApi = {
   submit: (payload) => api.post('/farm-visits', payload),
   mine: () => api.get('/farm-visits/mine'),
+  occupied: () => api.get('/farm-visits/occupied'),
 };

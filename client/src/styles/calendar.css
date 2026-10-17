@@ -1,0 +1,82 @@
+/* Farm visit calendar - shared by the customer booking form and the admin Farm Visits page. */
+.visit-calendar {
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+  font-family: inherit;
+}
+.visit-calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.visit-calendar-head button {
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  color: #7B1E2B;
+}
+.visit-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+.visit-calendar-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  padding: 4px 0;
+}
+.visit-calendar-day {
+  position: relative;
+  border: 1px solid #F0F0F0;
+  background: #fff;
+  border-radius: 8px;
+  min-height: 46px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #1A1A1A;
+}
+.visit-calendar-day small {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.visit-calendar-day:hover:not(:disabled) { border-color: #7B1E2B; }
+.visit-calendar-day:disabled { cursor: not-allowed; }
+.visit-calendar-day.past { color: #C4C4C4; background: #FAFAFA; }
+.visit-calendar-day.occupied { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+.visit-calendar-day.has-pending { background: #FEF3C7; border-color: #FDE68A; }
+.visit-calendar-day.has-confirmed { background: #DCFCE7; border-color: #BBF7D0; }
+.visit-calendar-day.today span { text-decoration: underline; font-weight: 800; }
+.visit-calendar-day.selected { background: #7B1E2B; border-color: #7B1E2B; color: #fff; }
+.visit-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #6B7280;
+}
+.visit-calendar-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: -1px;
+  background: var(--swatch);
+}

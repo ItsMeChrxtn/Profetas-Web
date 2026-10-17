@@ -187,9 +187,6 @@ export default function Account() {
       )}
 
       <div className="d-flex flex-wrap gap-2">
-        <Link to="/loyalty" className="btn btn-farm-outline">
-          <i className="fas fa-award me-2" />Loyalty & Vouchers
-        </Link>
         <Link to="/track-order" className="btn btn-farm-outline">
           <i className="fas fa-truck me-2" />My Orders
         </Link>

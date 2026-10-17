@@ -16,6 +16,7 @@ export default function Orders() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const status = searchParams.get('status') || '';
+  const method = searchParams.get('method') || '';
   const page = parseInt(searchParams.get('page'), 10) || 1;
 
   const [searchInput, setSearchInput] = useState(q);
@@ -25,18 +26,18 @@ export default function Orders() {
   const [viewingId, setViewingId] = useState(null);
 
   useEffect(() => {
-    adminOrdersApi.list({ q, status, page }).then((data) => {
+    adminOrdersApi.list({ q, status, page, ...(method && { deliveryMethod: method }) }).then((data) => {
       setItems(data.items);
       setPagination(data.pagination);
     });
-  }, [q, status, page]);
+  }, [q, status, page, method]);
 
   async function fetchAllOrders() {
     let allItems = [];
     let exportPage = 1;
     let totalPages = 1;
     do {
-      const data = await adminOrdersApi.list({ q, status, page: exportPage });
+      const data = await adminOrdersApi.list({ q, status, page: exportPage, ...(method && { deliveryMethod: method }) });
       allItems = allItems.concat(data.items);
       totalPages = data.pagination.totalPages;
       exportPage += 1;
@@ -95,7 +96,7 @@ export default function Orders() {
             style={{ width: 350 }}
             onSubmit={(e) => {
               e.preventDefault();
-              setSearchParams({ q: searchInput.trim(), status });
+              setSearchParams({ q: searchInput.trim(), status, method });
             }}
           >
             <i className="fas fa-search" />
@@ -109,10 +110,24 @@ export default function Orders() {
           </form>
 
           <div className="status-filter-row">
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', alignSelf: 'center' }}>Method:</span>
+            {['', 'Lalamove', 'Self-Pickup'].map((m) => (
+              <button
+                key={m || 'all'}
+                type="button"
+                className={`status-filter-pill ${method === m ? 'active' : ''}`}
+                onClick={() => setSearchParams({ q, status, method: m })}
+              >
+                {m || 'All Methods'}
+              </button>
+            ))}
+          </div>
+
+          <div className="status-filter-row">
             <button
               type="button"
               className={`status-filter-pill ${status === '' ? 'active' : ''}`}
-              onClick={() => setSearchParams({ q, status: '' })}
+              onClick={() => setSearchParams({ q, status: '', method })}
             >
               All
             </button>
@@ -121,7 +136,7 @@ export default function Orders() {
                 key={s}
                 type="button"
                 className={`status-filter-pill ${status === s ? 'active' : ''}`}
-                onClick={() => setSearchParams({ q, status: s })}
+                onClick={() => setSearchParams({ q, status: s, method })}
               >
                 {s}
               </button>
@@ -184,7 +199,7 @@ export default function Orders() {
           </span>
           <div className="pagination" style={{ display: 'flex', gap: 5 }}>
             {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((i) => (
-              <button key={i} className={`btn btn-icon ${i === page ? 'btn-primary' : 'btn-outline'}`} onClick={() => setSearchParams({ q, status, page: i })}>
+              <button key={i} className={`btn btn-icon ${i === page ? 'btn-primary' : 'btn-outline'}`} onClick={() => setSearchParams({ q, status, method, page: i })}>
                 {i}
               </button>
             ))}
