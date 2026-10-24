@@ -11,3 +11,6 @@ server/uploads/receipts/*
 .DS_Store
 *.log
 npm-debug.log*
+
+# Local database backups (contain personal data and password hashes)
+db-backups/
