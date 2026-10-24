@@ -18,10 +18,11 @@ export const adminProductsRouter = Router();
 adminProductsRouter.use(requireAdmin);
 
 adminProductsRouter.get('/', asyncHandler(listAdminProducts));
-adminProductsRouter.post('/', uploadProductImage.single('image'), verifyImageMagicBytes, createProduct);
-adminProductsRouter.put('/:id', uploadProductImage.single('image'), verifyImageMagicBytes, updateProduct);
-adminProductsRouter.patch('/:id/stock', asyncHandler(adjustStock));
-adminProductsRouter.post('/:id/archive', asyncHandler(archiveProduct));
+// Adding, editing, stock changes and archiving are super-admin only; admins can view.
+adminProductsRouter.post('/', requireSuperAdmin, uploadProductImage.single('image'), verifyImageMagicBytes, createProduct);
+adminProductsRouter.put('/:id', requireSuperAdmin, uploadProductImage.single('image'), verifyImageMagicBytes, updateProduct);
+adminProductsRouter.patch('/:id/stock', requireSuperAdmin, asyncHandler(adjustStock));
+adminProductsRouter.post('/:id/archive', requireSuperAdmin, asyncHandler(archiveProduct));
 
 // Product Archive - super admin only.
 adminProductsRouter.get('/archive/list', requireSuperAdmin, asyncHandler(listArchivedProducts));

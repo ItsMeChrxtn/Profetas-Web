@@ -10,8 +10,8 @@ import { showToast } from '../../utils/toast.js';
 const ROLE_LABELS = { superadmin: 'Super Admin', admin: 'Admin' };
 
 const ROLE_ACCESS = [
-  { role: 'Super Admin', access: 'Everything, plus Reports, Product Archive, Wholesaler Applications, managing customers, User Management, and the Landing Page.' },
-  { role: 'Admin', access: 'Dashboard, Orders, Products, Inventory, Customers (view only), Payments, Delivery Booking, Farm Visits, Education Posts, and Settings (no Landing Page).' },
+  { role: 'Super Admin', access: 'Everything: adding, editing and archiving products, stock changes, Reports, Product Archive, Wholesaler Applications, managing customers, and User Management.' },
+  { role: 'Admin', access: 'Dashboard, Orders, Products and Inventory (view only), Customers (view only), Payments, Delivery Booking, Farm Visits, Education Posts, and Settings including the Landing Page.' },
 ];
 
 function AddStaffModal({ onClose, onSaved }) {
@@ -115,6 +115,22 @@ export default function AdminUsers() {
       />
 
       <div className="card" style={{ marginBottom: 30 }}>
+        <div className="card-header">
+          <h3 className="card-title">
+            <i className="fas fa-key" /> Role Access
+          </h3>
+        </div>
+        <div className="detail-grid">
+          {ROLE_ACCESS.map((r) => (
+            <div key={r.role} style={{ display: 'contents' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{r.role}</span>
+              <strong style={{ fontWeight: 400 }}>{r.access}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
         <div className="table-container">
           <table>
             <thead>
@@ -162,22 +178,6 @@ export default function AdminUsers() {
               })}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">
-            <i className="fas fa-key" /> Role Access
-          </h3>
-        </div>
-        <div className="detail-grid">
-          {ROLE_ACCESS.map((r) => (
-            <div key={r.role} style={{ display: 'contents' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{r.role}</span>
-              <strong style={{ fontWeight: 400 }}>{r.access}</strong>
-            </div>
-          ))}
         </div>
       </div>
 

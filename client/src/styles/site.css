@@ -722,3 +722,20 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     padding: 10px 12px;
 }
 .policy-note > i { color: var(--primary-green); margin-top: 2px; }
+
+/* About the Company: out of the card, centered on the page. */
+.about-section {
+    margin: 64px auto 0;
+    max-width: 860px;
+    text-align: center;
+}
+.about-section .section-title { font-size: 32px; }
+.about-section .about-image {
+    display: block;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+.about-section .about-text { font-size: 16px; }

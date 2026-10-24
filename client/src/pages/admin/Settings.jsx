@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { showToast } from '../../utils/toast.js';
 import { LandingPageSettings } from '../../components/admin/LandingPageSettings.jsx';
-import { isSuperAdmin } from '../../utils/roles.js';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -206,8 +205,7 @@ export default function Settings() {
           </form>
         </div>
 
-        {/* Only the super admin edits the landing page. */}
-        {isSuperAdmin(user) && <LandingPageSettings />}
+        <LandingPageSettings />
 
         <div className="card" id="security" style={{ marginTop: 30 }}>
           <div className="card-header">

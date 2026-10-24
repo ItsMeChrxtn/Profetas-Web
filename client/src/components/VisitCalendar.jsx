@@ -10,7 +10,7 @@ function toDateString(year, month, day) {
 /**
  * Month calendar shared by the admin Farm Visits page and the customer booking
  * form. `dayInfo(dateStr)` returns { className, badge, disabled, title } to
- * mark a day (occupied, has visits, past...).
+ * mark a day (occupied, has visits, past...). Today is always circled.
  */
 export function VisitCalendar({ selected, onSelect, dayInfo = () => ({}), initialDate }) {
   const start = initialDate ? new Date(`${initialDate}T00:00:00`) : new Date();
@@ -19,6 +19,8 @@ export function VisitCalendar({ selected, onSelect, dayInfo = () => ({}), initia
   const firstWeekday = new Date(view.year, view.month, 1).getDay();
   const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
   const cells = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const now = new Date();
+  const today = toDateString(now.getFullYear(), now.getMonth(), now.getDate());
   const title = new Date(view.year, view.month, 1).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
 
   function shift(delta) {
@@ -55,7 +57,7 @@ export function VisitCalendar({ selected, onSelect, dayInfo = () => ({}), initia
               type="button"
               title={info.title}
               disabled={info.disabled}
-              className={`visit-calendar-day ${info.className || ''} ${selected === date ? 'selected' : ''}`}
+              className={`visit-calendar-day ${info.className || ''} ${date === today ? 'today' : ''} ${selected === date ? 'selected' : ''}`}
               onClick={() => onSelect?.(date)}
             >
               <span>{day}</span>

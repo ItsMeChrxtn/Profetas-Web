@@ -56,6 +56,14 @@ function paymentPillClass(payment) {
   return 'status-pending';
 }
 
+// Many orders: list by progress - Pending first, Completed (then Cancelled) last; newest first within each.
+const STATUS_ORDER = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
+function sortByStatus(orders) {
+  return [...orders].sort(
+    (a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) || new Date(b.orderDate) - new Date(a.orderDate)
+  );
+}
+
 function MyOrders() {
   const [orders, setOrders] = useState(null);
   const [searchParams] = useSearchParams();
@@ -91,7 +99,7 @@ function MyOrders() {
         </div>
       )}
 
-      {orders.map((order) => {
+      {sortByStatus(orders).map((order) => {
         const isHighlighted = String(order.orderNumber) === highlight;
 
         return (

@@ -29,7 +29,7 @@ export default function FarmVisit() {
   function dayInfo(date) {
     if (date < today) return { className: 'past', disabled: true };
     if (occupied.has(date)) return { className: 'occupied', disabled: true, badge: 'Booked', title: 'Already booked' };
-    return { className: date === today ? 'today' : '' };
+    return {};
   }
 
   function update(field, value) {

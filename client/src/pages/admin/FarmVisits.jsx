@@ -206,7 +206,7 @@ export default function FarmVisits() {
               const list = visitsByDate.get(date) || [];
               if (list.some((v) => v.status === 'Confirmed')) return { className: 'has-confirmed', badge: 'Booked' };
               if (list.length) return { className: 'has-pending', badge: `${list.length} req` };
-              return { className: date < today ? 'past' : date === today ? 'today' : '' };
+              return { className: date < today ? 'past' : '' };
             }}
           />
           <div className="visit-calendar-legend">

@@ -191,21 +191,11 @@ export default function Home() {
       </section>
 
       {settings.aboutText && (
-        <section className="mt-5">
-          <div className="farm-card about-card">
-            <div className="row g-4 align-items-center">
-              {settings.aboutImage && (
-                <div className="col-lg-5">
-                  <img src={mediaUrl(settings.aboutImage)} alt="Profeta Integrated Farm" className="about-image" loading="lazy" />
-                </div>
-              )}
-              <div className={settings.aboutImage ? 'col-lg-7' : 'col-12'}>
-                <div className="about-eyebrow">About the Company</div>
-                <h2 className="section-title mb-3">Profeta Integrated Farm</h2>
-                <RichText value={settings.aboutText} className="about-text" />
-              </div>
-            </div>
-          </div>
+        <section className="about-section">
+          <div className="about-eyebrow">About the Company</div>
+          <h2 className="section-title mb-4">Profeta Integrated Farm</h2>
+          {settings.aboutImage && <img src={mediaUrl(settings.aboutImage)} alt="Profeta Integrated Farm" className="about-image" loading="lazy" />}
+          <RichText value={settings.aboutText} className="about-text" />
         </section>
       )}
       {glimpse.length > 0 && (

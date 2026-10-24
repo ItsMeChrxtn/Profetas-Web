@@ -7,6 +7,8 @@ import { peso } from '../../utils/peso.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { isSuperAdmin } from '../../utils/roles.js';
 
 const CATEGORIES = ['Fresh', 'Value-Added', 'Farm Inputs'];
 
@@ -156,6 +158,9 @@ function ProductFormModal({ product, onClose, onSaved }) {
 const PRODUCT_STATUSES = ['Active', 'Inactive'];
 
 export default function Products() {
+  // Only the super admin adds, edits or archives products; admins see the list.
+  const { user } = useAuth();
+  const canManage = isSuperAdmin(user);
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
@@ -194,11 +199,13 @@ export default function Products() {
     <>
       <PageHeader
         title="Products"
-        subtitle="Manage your farm products, pricing, and categories."
+        subtitle={canManage ? 'Manage your farm products, pricing, and categories.' : 'View farm products, pricing, and stock.'}
         actions={
-          <button className="btn btn-primary" onClick={() => setModal({ mode: 'add' })}>
-            <i className="fas fa-plus" /> Add Product
-          </button>
+          canManage && (
+            <button className="btn btn-primary" onClick={() => setModal({ mode: 'add' })}>
+              <i className="fas fa-plus" /> Add Product
+            </button>
+          )
         }
       />
 
@@ -267,7 +274,7 @@ export default function Products() {
                 <th>Price</th>
                 <th>Stock</th>
                 <th>Status</th>
-                <th>Actions</th>
+                {canManage && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -307,6 +314,7 @@ export default function Products() {
                     <td>
                       <span className={`status-pill status-${product.status.toLowerCase()}`}>{product.status}</span>
                     </td>
+                    {canManage && (
                     <td>
                       <div style={{ display: 'flex', gap: 5 }}>
                         <button className="btn btn-icon btn-outline" onClick={() => setModal({ mode: 'edit', product })}>
@@ -317,6 +325,7 @@ export default function Products() {
                         </button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 );
               })}

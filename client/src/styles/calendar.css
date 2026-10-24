@@ -60,7 +60,18 @@
 .visit-calendar-day.occupied { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
 .visit-calendar-day.has-pending { background: #FEF3C7; border-color: #FDE68A; }
 .visit-calendar-day.has-confirmed { background: #DCFCE7; border-color: #BBF7D0; }
-.visit-calendar-day.today span { text-decoration: underline; font-weight: 800; }
+/* Today is circled. */
+.visit-calendar-day.today span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #7B1E2B;
+  border-radius: 50%;
+  font-weight: 800;
+}
+.visit-calendar-day.today.selected span { border-color: #fff; }
 .visit-calendar-day.selected { background: #7B1E2B; border-color: #7B1E2B; color: #fff; }
 .visit-calendar-legend {
   display: flex;

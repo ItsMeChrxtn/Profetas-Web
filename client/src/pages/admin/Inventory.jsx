@@ -5,6 +5,8 @@ import { PageHeader } from '../../components/admin/PageHeader.jsx';
 import { formatDate } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { isSuperAdmin } from '../../utils/roles.js';
 
 function stockStatusLabel(qty, threshold) {
   if (qty <= 0) return 'Out of Stock';
@@ -20,6 +22,9 @@ const STOCK_STATUS_FILTERS = [
 ];
 
 export default function Inventory() {
+  // Only the super admin adjusts stock; admins see the list.
+  const { user } = useAuth();
+  const canManage = isSuperAdmin(user);
   const [q, setQ] = useState('');
   const [stockStatus, setStockStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -107,7 +112,7 @@ export default function Inventory() {
                 <th>Stock Level</th>
                 <th>Status</th>
                 <th>Last Updated</th>
-                <th>Actions</th>
+                {canManage && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -151,6 +156,7 @@ export default function Inventory() {
                       </span>
                     </td>
                     <td>{formatDate(item.updatedAt)}</td>
+                    {canManage && (
                     <td>
                       {isEditing ? (
                         <div style={{ display: 'flex', gap: 5 }}>
@@ -173,6 +179,7 @@ export default function Inventory() {
                         </button>
                       )}
                     </td>
+                    )}
                   </tr>
                 );
               })}
