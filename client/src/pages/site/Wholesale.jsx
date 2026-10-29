@@ -133,7 +133,7 @@ function WholesaleCatalog({ businessName }) {
             You're a verified wholesaler <i className="fas fa-check-circle verified-check" />
           </div>
           <div className="small text-muted">
-            {businessName ? `${businessName} has` : 'You have'} access to these wholesale products. Add them to your cart and check out as usual.
+            {businessName ? `${businessName} gets` : 'You get'} wholesale prices on these products. Each has a minimum order shown under its price.
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function Wholesale() {
       <h2 className="section-title">{isWholesaler ? 'Wholesale Products' : 'Wholesaler Application'}</h2>
       <p className="section-subtitle">
         {isWholesaler ? (
-          'Products available to verified wholesalers.'
+          'Wholesale prices for verified wholesalers.'
         ) : (
           <>
             Buy in bulk at wholesale prices. Questions? See our <Link to="/faq">FAQs</Link>.

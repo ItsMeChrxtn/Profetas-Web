@@ -739,3 +739,15 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     box-shadow: var(--shadow-md);
 }
 .about-section .about-text { font-size: 16px; }
+
+/* Wholesale price label (only approved wholesalers ever see these). */
+.wholesale-price-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1D7ACF;
+    background: #E8F5FE;
+    border-radius: 20px;
+    padding: 2px 9px;
+    margin-bottom: 6px;
+}

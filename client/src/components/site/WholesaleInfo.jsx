@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 const STEPS = [
   { icon: 'fa-file-signature', title: 'Submit Your Application', text: 'Provide the required information and documents for verification.' },
   { icon: 'fa-search', title: 'Review Process', text: 'Our team will review your application and verify the details.' },
-  { icon: 'fa-user-check', title: 'Get Approved', text: "Once approved, you'll get wholesaler status and access to wholesale products." },
+  { icon: 'fa-user-check', title: 'Get Approved', text: "Once approved, you'll see wholesale prices on our wholesale products." },
 ];
 
 const REQUIREMENTS = [

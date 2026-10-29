@@ -54,9 +54,20 @@ function validateProductFields(body) {
 
 /** Weight and wholesale fields shared by create and update. */
 function extraProductFields(body) {
+  const availableForWholesale = body.availableForWholesale === 'true' || body.availableForWholesale === true;
+  const wholesalePrice = parseFloat(body.wholesalePrice);
+  const wholesaleMinQty = parseInt(body.wholesaleMinQty, 10);
+  if (availableForWholesale && !(wholesalePrice > 0)) {
+    throw new HttpError(400, 'Please set a wholesale price for products shown to wholesalers.');
+  }
+  if (availableForWholesale && !(wholesaleMinQty >= 1)) {
+    throw new HttpError(400, 'Please set a minimum wholesale order of at least 1.');
+  }
   return {
     weightKg: Math.max(0, parseFloat(body.weightKg) || 0),
-    availableForWholesale: body.availableForWholesale === 'true' || body.availableForWholesale === true,
+    availableForWholesale,
+    wholesalePrice: availableForWholesale ? wholesalePrice : null,
+    wholesaleMinQty: availableForWholesale ? wholesaleMinQty : 1,
   };
 }
 

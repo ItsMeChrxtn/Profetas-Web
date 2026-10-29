@@ -30,13 +30,19 @@ function CartRow({ item, selected, onToggle, onUpdate, onRemove }) {
         <div className="fw-bold">{item.name}</div>
         <div className="small text-muted">
           {peso(item.price)} / {item.unit}
+          {item.isWholesalePrice && <span className="wholesale-price-tag ms-2">Wholesale &middot; min. {item.minOrderQty}</span>}
         </div>
+        {item.quantity < item.minOrderQty && (
+          <div className="small text-danger">
+            Minimum wholesale order is {item.minOrderQty} {item.unit}.
+          </div>
+        )}
       </div>
       <div className="d-flex align-items-center gap-2">
         <input
           type="number"
           value={qty}
-          min={1}
+          min={item.minOrderQty || 1}
           max={item.stockQty}
           className="form-control form-control-sm"
           style={{ width: 70 }}
@@ -86,6 +92,8 @@ export default function Cart() {
   const selectedItems = resolved.filter((item) => !deselected.has(String(item.productId)));
   const selectedSubtotal = Math.round(selectedItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
   const allSelected = selectedItems.length === resolved.length;
+  // A wholesale line below its minimum order can't be checked out.
+  const belowMinimum = selectedItems.some((item) => item.quantity < (item.minOrderQty || 1));
 
   function toggle(productId) {
     setDeselected((prev) => {
@@ -155,7 +163,7 @@ export default function Cart() {
               <span className="fw-bold">{peso(selectedSubtotal)}</span>
             </div>
             <p className="small text-muted">Delivery fees are calculated at checkout based on your chosen delivery method.</p>
-            <button className="btn btn-farm-primary w-100 mt-2" onClick={checkout} disabled={selectedItems.length === 0}>
+            <button className="btn btn-farm-primary w-100 mt-2" onClick={checkout} disabled={selectedItems.length === 0 || belowMinimum}>
               Checkout Selected <i className="fas fa-arrow-right ms-1" />
             </button>
           </div>

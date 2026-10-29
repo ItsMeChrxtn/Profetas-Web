@@ -4,7 +4,7 @@ import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../utils/httpError.js';
 import { decrementStockOrThrow } from './stock.service.js';
 import { appEvents } from '../utils/eventBus.js';
-import { unitPriceFor } from './pricing.service.js';
+import { unitPriceFor, minOrderQtyFor } from './pricing.service.js';
 
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -59,7 +59,11 @@ export async function placeOrder({
         }
 
         const product = await decrementStockOrThrow(productId, qty, session);
-        const unitPrice = unitPriceFor(product);
+        const minQty = minOrderQtyFor(product, isWholesaler);
+        if (qty < minQty) {
+          throw new HttpError(400, `The minimum wholesale order for ${product.name} is ${minQty} ${product.unit}.`);
+        }
+        const unitPrice = unitPriceFor(product, isWholesaler);
         const lineSubtotal = round2(unitPrice * qty);
         subtotal = round2(subtotal + lineSubtotal);
 

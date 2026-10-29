@@ -30,6 +30,7 @@ export default function ProductDetail() {
       .get(id)
       .then((data) => {
         setProduct(data.product);
+        setQty(data.product.minOrderQty || 1);
         setRelated(data.related);
       })
       .catch(() => setNotFound(true));
@@ -122,8 +123,13 @@ export default function ProductDetail() {
             <div className="mt-4">
               <div className="d-flex align-items-center gap-3 mb-3">
                 <span className="small text-muted">Quantity</span>
-                <QuantityStepper value={qty} max={product.stockQty} onChange={setQty} />
+                <QuantityStepper value={qty} min={product.minOrderQty || 1} max={product.stockQty} onChange={setQty} />
               </div>
+              {product.isWholesalePrice && (
+                <div className="wholesale-price-tag mb-3">
+                  <i className="fas fa-handshake" /> Wholesale price &middot; minimum order {product.minOrderQty} {product.unit}
+                </div>
+              )}
               <div className="d-flex gap-2">
                 <button className="btn btn-farm-outline flex-grow-1" disabled={adding} onClick={handleAddToCart}>
                   <i className="fas fa-shopping-basket me-2" />

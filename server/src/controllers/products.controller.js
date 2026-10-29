@@ -1,6 +1,6 @@
 import { Product, PRODUCT_CATEGORY_VALUES, Order } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
-import { isWholesalerUser } from '../services/pricing.service.js';
+import { isWholesalerUser, forViewer } from '../services/pricing.service.js';
 
 const PER_PAGE = 8;
 
@@ -39,9 +39,10 @@ export async function listProducts(req, res) {
     Product.countDocuments(filter),
   ]);
 
+  const isWholesaler = await isWholesalerUser(req.user?.id);
   res.json({
     success: true,
-    items,
+    items: items.map((p) => forViewer(p, isWholesaler)),
     pagination: { page, perPage: PER_PAGE, total, totalPages: Math.max(1, Math.ceil(total / PER_PAGE)) },
   });
 }
@@ -58,17 +59,20 @@ export async function getProduct(req, res) {
     _id: { $ne: product._id },
   }).limit(4);
 
-  res.json({ success: true, product, related });
+  const isWholesaler = await isWholesalerUser(req.user?.id);
+  res.json({ success: true, product: forViewer(product, isWholesaler), related: related.map((p) => forViewer(p, isWholesaler)) });
 }
 
 export async function listHarvestedToday(req, res) {
   const items = await Product.find({ isHarvestedToday: true, status: 'Active' }).sort({ updatedAt: -1 });
-  res.json({ success: true, items });
+  const isWholesaler = await isWholesalerUser(req.user?.id);
+  res.json({ success: true, items: items.map((p) => forViewer(p, isWholesaler)) });
 }
 
 export async function listFeatured(req, res) {
   const items = await Product.find({ status: 'Active' }).sort({ createdAt: -1 }).limit(8);
-  res.json({ success: true, items });
+  const isWholesaler = await isWholesalerUser(req.user?.id);
+  res.json({ success: true, items: items.map((p) => forViewer(p, isWholesaler)) });
 }
 
 /** Active products ranked by a per-product score from non-cancelled orders since `since`. */
@@ -95,14 +99,16 @@ async function rankProducts({ since, score, limit = 4 }) {
 /** Best Sellers: most units sold, all time. */
 export async function listBestSellers(req, res) {
   const items = await rankProducts({ score: { $sum: '$items.quantity' } });
-  res.json({ success: true, items });
+  const isWholesaler = await isWholesalerUser(req.user?.id);
+  res.json({ success: true, items: items.map((p) => forViewer(p, isWholesaler)) });
 }
 
 /** Popular: ordered by the most customers (distinct orders) in the last 30 days. */
 export async function listPopular(req, res) {
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const items = await rankProducts({ since, score: { $sum: 1 } });
-  res.json({ success: true, items });
+  const isWholesaler = await isWholesalerUser(req.user?.id);
+  res.json({ success: true, items: items.map((p) => forViewer(p, isWholesaler)) });
 }
 
 /** Wholesale catalog - products marked for wholesalers; approved wholesalers only. */
@@ -115,5 +121,5 @@ export async function listWholesaleProducts(req, res) {
     { $addFields: { stockRank: STOCK_RANK } },
     { $sort: { category: 1, stockRank: 1, name: 1 } },
   ]);
-  res.json({ success: true, items });
+  res.json({ success: true, items: items.map((p) => forViewer(p, true)) });
 }

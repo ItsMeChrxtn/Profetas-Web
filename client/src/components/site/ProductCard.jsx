@@ -30,6 +30,11 @@ export function ProductCard({ product, harvestedLabel = 'Harvested Today', bestS
         <div className="product-body">
           <div className="product-cat">{product.category}</div>
           <div className="product-name">{product.name}</div>
+          {product.isWholesalePrice && (
+            <div className="wholesale-price-tag">
+              <i className="fas fa-handshake" /> Wholesale price &middot; min. {product.minOrderQty} {product.unit}
+            </div>
+          )}
           <div className="d-flex justify-content-between align-items-center mb-2">
             <span className="product-price">{peso(product.price)}</span>
             <span className="product-unit">/ {product.unit}</span>

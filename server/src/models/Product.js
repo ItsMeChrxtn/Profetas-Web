@@ -20,8 +20,9 @@ const productSchema = new mongoose.Schema(
     weightKg: { type: Number, default: 0.5, min: 0 },
     // Shown on the wholesaler page to approved wholesalers.
     availableForWholesale: { type: Boolean, default: false },
-    // No longer used (wholesalers pay the listed price); kept so older records still load.
+    // What approved wholesalers see and pay instead of `price`, with a minimum quantity per order.
     wholesalePrice: { type: Number, default: null, min: 0 },
+    wholesaleMinQty: { type: Number, default: 1, min: 1 },
   },
   { timestamps: true }
 );

@@ -1,5 +1,5 @@
 import { Product } from '../models/index.js';
-import { unitPriceFor } from '../services/pricing.service.js';
+import { unitPriceFor, minOrderQtyFor, hasWholesalePrice, isWholesalerUser } from '../services/pricing.service.js';
 
 /**
  * Re-resolves a client-held cart {productId, quantity}[] against live product
@@ -12,7 +12,10 @@ export async function validateCart(req, res) {
   const requested = Array.isArray(req.body.items) ? req.body.items : [];
   const ids = requested.map((i) => i.productId).filter(Boolean);
 
-  const products = await Product.find({ _id: { $in: ids }, status: 'Active' });
+  const [products, isWholesaler] = await Promise.all([
+    Product.find({ _id: { $in: ids }, status: 'Active' }),
+    isWholesalerUser(req.user?.id),
+  ]);
   const byId = new Map(products.map((p) => [p._id.toString(), p]));
 
   const items = [];
@@ -25,7 +28,7 @@ export async function validateCart(req, res) {
     const clampedQty = Math.min(Math.max(0, parseInt(quantity, 10) || 0), product.stockQty);
     if (clampedQty <= 0) continue;
 
-    const price = unitPriceFor(product);
+    const price = unitPriceFor(product, isWholesaler);
     const lineSubtotal = Math.round(price * clampedQty * 100) / 100;
     subtotal += lineSubtotal;
 
@@ -35,6 +38,9 @@ export async function validateCart(req, res) {
       image: product.image,
       unit: product.unit,
       price,
+      isWholesalePrice: isWholesaler && hasWholesalePrice(product),
+      // The cart page warns (and checkout refuses) below a wholesale minimum.
+      minOrderQty: minOrderQtyFor(product, isWholesaler),
       weightKg: product.weightKg,
       quantity: clampedQty,
       requestedQuantity: parseInt(quantity, 10) || 0,
@@ -65,6 +71,11 @@ export async function checkCartAdd(req, res) {
 
   if (addQty < 1 || alreadyInCart + addQty > product.stockQty) {
     return res.status(400).json({ success: false, message: 'Not enough stock available.' });
+  }
+
+  const minQty = minOrderQtyFor(product, await isWholesalerUser(req.user?.id));
+  if (alreadyInCart + addQty < minQty) {
+    return res.status(400).json({ success: false, message: `The minimum wholesale order for ${product.name} is ${minQty} ${product.unit}.` });
   }
 
   res.json({ success: true, stockQty: product.stockQty });

@@ -141,8 +141,7 @@ export default function Faq() {
             </li>
             <li>
               <strong>Get approved.</strong> Once approved, your account gets wholesaler status, a{' '}
-              <i className="fas fa-check-circle verified-check" /> verified badge, and a <strong>Wholesale</strong> page with the products
-              available to wholesalers.
+              <i className="fas fa-check-circle verified-check" /> verified badge, and wholesale prices on our wholesale products.
             </li>
           </ol>
         </FaqItem>
@@ -160,8 +159,9 @@ export default function Faq() {
           Your account stays a regular customer account, and we'll show you the reason. You can update your details and apply again.
         </FaqItem>
         <FaqItem question="How do I order wholesale products?">
-          Once approved, a <strong>Wholesale</strong> link appears in the menu. It lists the products available to wholesalers &mdash; add
-          them to your cart and check out as usual.
+          Once approved, you'll see <strong>wholesale prices</strong> on wholesale products everywhere in the shop, and a{' '}
+          <strong>Wholesale</strong> link in the menu lists them all. Each wholesale product has a <strong>minimum order</strong> shown under
+          its price &mdash; add at least that many to your cart, then check out as usual.
         </FaqItem>
       </div>
 

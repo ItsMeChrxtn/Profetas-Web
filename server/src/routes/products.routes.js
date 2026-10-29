@@ -8,10 +8,13 @@ import {
   listPopular,
   listWholesaleProducts,
 } from '../controllers/products.controller.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, attachUserIfPresent } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const productsRouter = Router();
+
+// Optional login: prices are shown per viewer (wholesale price for approved wholesalers).
+productsRouter.use(attachUserIfPresent);
 
 productsRouter.get('/', asyncHandler(listProducts));
 productsRouter.get('/harvested-today', asyncHandler(listHarvestedToday));

@@ -31,6 +31,8 @@ function ProductFormModal({ product, onClose, onSaved }) {
     isHarvestedToday: product?.isHarvestedToday || false,
     weightKg: product?.weightKg ?? 0.5,
     availableForWholesale: product?.availableForWholesale || false,
+    wholesalePrice: product?.wholesalePrice ?? '',
+    wholesaleMinQty: product?.wholesaleMinQty ?? 1,
   });
   const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -125,7 +127,37 @@ function ProductFormModal({ product, onClose, onSaved }) {
               Show on the wholesaler page
             </label>
           </div>
-          <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: 4 }}>Verified wholesalers will see this product on their wholesale page.</small>
+          <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: 4 }}>
+            Verified wholesalers see only the wholesale price; regular customers see only the regular price.
+          </small>
+          {form.availableForWholesale && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 15, marginTop: 10 }}>
+              <div>
+                <label>Wholesale Price (₱)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  className="form-control"
+                  required
+                  value={form.wholesalePrice}
+                  onChange={(e) => update('wholesalePrice', e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label>Minimum Order ({form.unit || 'units'})</label>
+                <input
+                  type="number"
+                  min="1"
+                  className="form-control"
+                  required
+                  value={form.wholesaleMinQty}
+                  onChange={(e) => update('wholesaleMinQty', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <div className="form-group">
           <label>Description</label>
@@ -297,8 +329,8 @@ export default function Products() {
                     <td style={{ fontWeight: 700, color: 'var(--primary-green)' }}>
                       {product.name}
                       {product.availableForWholesale && (
-                        <span className="wholesaler-tag">
-                          <i className="fas fa-handshake" /> Wholesale
+                        <span className="wholesaler-tag" title={`Wholesale ${peso(product.wholesalePrice)}, minimum ${product.wholesaleMinQty || 1} ${product.unit}`}>
+                          <i className="fas fa-handshake" /> Wholesale {peso(product.wholesalePrice)} &middot; min {product.wholesaleMinQty || 1}
                         </span>
                       )}
                     </td>

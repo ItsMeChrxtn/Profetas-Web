@@ -43,9 +43,9 @@ const REPORTS = {
   },
   products: {
     title: 'Products',
-    headers: ['Product', 'Category', 'Price', 'Unit', 'Weight (kg)', 'For Wholesalers', 'Stock', 'Status'],
+    headers: ['Product', 'Category', 'Price', 'Unit', 'Weight (kg)', 'Wholesale Price', 'Wholesale Min.', 'Stock', 'Status'],
     fetch: () => fetchAllPages(adminProductsApi.list),
-    row: (p, fmt) => [p.name, p.category, fmt(p.price), p.unit, p.weightKg ?? 0.5, p.availableForWholesale ? 'Yes' : 'No', p.stockQty, p.status],
+    row: (p, fmt) => [p.name, p.category, fmt(p.price), p.unit, p.weightKg ?? 0.5, p.availableForWholesale ? fmt(p.wholesalePrice) : '—', p.availableForWholesale ? p.wholesaleMinQty || 1 : '—', p.stockQty, p.status],
   },
 };
 
