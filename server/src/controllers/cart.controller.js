@@ -21,14 +21,17 @@ export async function validateCart(req, res) {
   const items = [];
   let subtotal = 0;
 
-  for (const { productId, quantity } of requested) {
+  for (const { productId, quantity, wholesale: wantsWholesale } of requested) {
     const product = byId.get(String(productId));
     if (!product) continue;
+    // A wholesale line the account can no longer use is dropped, like a removed product.
+    const wholesale = Boolean(wantsWholesale);
+    if (wholesale && !(isWholesaler && hasWholesalePrice(product))) continue;
 
     const clampedQty = Math.min(Math.max(0, parseInt(quantity, 10) || 0), product.stockQty);
     if (clampedQty <= 0) continue;
 
-    const price = unitPriceFor(product, isWholesaler);
+    const price = unitPriceFor(product, wholesale);
     const lineSubtotal = Math.round(price * clampedQty * 100) / 100;
     subtotal += lineSubtotal;
 
@@ -38,9 +41,9 @@ export async function validateCart(req, res) {
       image: product.image,
       unit: product.unit,
       price,
-      isWholesalePrice: isWholesaler && hasWholesalePrice(product),
+      isWholesalePrice: wholesale,
       // The cart page warns (and checkout refuses) below a wholesale minimum.
-      minOrderQty: minOrderQtyFor(product, isWholesaler),
+      minOrderQty: minOrderQtyFor(product, wholesale),
       weightKg: product.weightKg,
       quantity: clampedQty,
       requestedQuantity: parseInt(quantity, 10) || 0,
@@ -60,7 +63,7 @@ export async function validateCart(req, res) {
  * since it doesn't know what's already in the cart.
  */
 export async function checkCartAdd(req, res) {
-  const { productId, currentQuantity, quantity } = req.body;
+  const { productId, currentQuantity, quantity, wholesale: wantsWholesale } = req.body;
   const addQty = parseInt(quantity, 10) || 0;
   const alreadyInCart = parseInt(currentQuantity, 10) || 0;
 
@@ -73,7 +76,12 @@ export async function checkCartAdd(req, res) {
     return res.status(400).json({ success: false, message: 'Not enough stock available.' });
   }
 
-  const minQty = minOrderQtyFor(product, await isWholesalerUser(req.user?.id));
+  const wholesale = Boolean(wantsWholesale);
+  if (wholesale && !(hasWholesalePrice(product) && (await isWholesalerUser(req.user?.id)))) {
+    return res.status(403).json({ success: false, message: 'Wholesale prices are for approved wholesalers only.' });
+  }
+
+  const minQty = minOrderQtyFor(product, wholesale);
   if (alreadyInCart + addQty < minQty) {
     return res.status(400).json({ success: false, message: `The minimum wholesale order for ${product.name} is ${minQty} ${product.unit}.` });
   }

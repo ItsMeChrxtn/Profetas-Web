@@ -4,7 +4,7 @@ import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../utils/httpError.js';
 import { decrementStockOrThrow } from './stock.service.js';
 import { appEvents } from '../utils/eventBus.js';
-import { unitPriceFor, minOrderQtyFor } from './pricing.service.js';
+import { unitPriceFor, minOrderQtyFor, hasWholesalePrice } from './pricing.service.js';
 
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -52,18 +52,22 @@ export async function placeOrder({
       const lineItems = [];
       let subtotal = 0;
 
-      for (const { productId, quantity } of items) {
+      for (const { productId, quantity, wholesale: wantsWholesale } of items) {
         const qty = parseInt(quantity, 10);
         if (!productId || !Number.isInteger(qty) || qty < 1) {
           throw new HttpError(400, 'Invalid item in cart.');
         }
 
         const product = await decrementStockOrThrow(productId, qty, session);
-        const minQty = minOrderQtyFor(product, isWholesaler);
+        const wholesale = Boolean(wantsWholesale);
+        if (wholesale && !(isWholesaler && hasWholesalePrice(product))) {
+          throw new HttpError(403, 'Wholesale prices are for approved wholesalers only.');
+        }
+        const minQty = minOrderQtyFor(product, wholesale);
         if (qty < minQty) {
           throw new HttpError(400, `The minimum wholesale order for ${product.name} is ${minQty} ${product.unit}.`);
         }
-        const unitPrice = unitPriceFor(product, isWholesaler);
+        const unitPrice = unitPriceFor(product, wholesale);
         const lineSubtotal = round2(unitPrice * qty);
         subtotal = round2(subtotal + lineSubtotal);
 
@@ -71,6 +75,7 @@ export async function placeOrder({
           product: product._id,
           productName: product.name,
           unitPrice,
+          wholesale,
           quantity: qty,
           subtotal: lineSubtotal,
         });
@@ -109,7 +114,7 @@ export async function placeOrder({
             deliveryFeePayment,
             totalWeightKg: lalamove.weightKg || 0,
             lalamoveServiceType: lalamove.serviceType || null,
-            isWholesaleOrder: isWholesaler,
+            isWholesaleOrder: lineItems.some((line) => line.wholesale),
             ...deliveryDetails,
             payment: {
               method: 'GCash',

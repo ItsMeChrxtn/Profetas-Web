@@ -16,7 +16,7 @@ export function ProductCard({ product, harvestedLabel = 'Harvested Today', bestS
           <i className="fas fa-seedling" /> {harvestedLabel}
         </span>
       )}
-      <Link to={`/product/${product._id}`} className="text-decoration-none text-reset">
+      <Link to={`/product/${product._id}${product.isWholesalePrice ? '?wholesale=1' : ''}`} className="text-decoration-none text-reset">
         <div className="product-img-wrap">
           <img
             src={mediaUrl(product.image) || '/placeholder.svg'}

@@ -9,6 +9,7 @@ const orderItemSchema = new mongoose.Schema(
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     productName: { type: String, required: true },
     unitPrice: { type: Number, required: true },
+    wholesale: { type: Boolean, default: false },
     quantity: { type: Number, required: true, min: 1 },
     subtotal: { type: Number, required: true },
   },

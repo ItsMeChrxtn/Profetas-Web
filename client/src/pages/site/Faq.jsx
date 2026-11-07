@@ -159,9 +159,9 @@ export default function Faq() {
           Your account stays a regular customer account, and we'll show you the reason. You can update your details and apply again.
         </FaqItem>
         <FaqItem question="How do I order wholesale products?">
-          Once approved, you'll see <strong>wholesale prices</strong> on wholesale products everywhere in the shop, and a{' '}
-          <strong>Wholesale</strong> link in the menu lists them all. Each wholesale product has a <strong>minimum order</strong> shown under
-          its price &mdash; add at least that many to your cart, then check out as usual.
+          Once approved, a <strong>Wholesale</strong> link appears in the menu. It lists our wholesale products at{' '}
+          <strong>wholesale prices</strong>, and each has a <strong>minimum order</strong> shown under its price. You can still buy from the{' '}
+          <strong>Shop</strong> at regular prices with no minimum &mdash; the two are separate.
         </FaqItem>
       </div>
 

@@ -2,5 +2,6 @@ import { api } from './client.js';
 
 export const cartApi = {
   validate: (items) => api.post('/cart/validate', { items }, { loader: false }),
-  checkAdd: (productId, currentQuantity, quantity) => api.post('/cart/check-add', { productId, currentQuantity, quantity }, { loader: false }),
+  checkAdd: (productId, currentQuantity, quantity, wholesale = false) =>
+    api.post('/cart/check-add', { productId, currentQuantity, quantity, wholesale }, { loader: false }),
 };

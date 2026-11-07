@@ -9,13 +9,14 @@ import { DeliveryMap } from '../../components/site/DeliveryMap.jsx';
 import { ReceiptUploader } from '../../components/site/ReceiptUploader.jsx';
 import { showToast } from '../../utils/toast.js';
 import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
+import { cartKey } from '../../utils/cartKey.js';
 
 const DELIVERY_METHODS = ['Lalamove', 'Self-Pickup'];
 const GCASH_QR_IMAGE = '/images/gcash-qr.png';
 
-/** Just the {productId, quantity} intents the server re-prices itself. */
+/** Just the {productId, quantity, wholesale} intents the server re-prices itself. */
 function orderItems(items) {
-  return (items || []).map((item) => ({ productId: item.productId, quantity: item.quantity }));
+  return (items || []).map((item) => ({ productId: item.productId, quantity: item.quantity, wholesale: item.isWholesalePrice }));
 }
 
 export default function Checkout() {
@@ -190,7 +191,7 @@ export default function Checkout() {
     setSubmitting(true);
     try {
       const data = await ordersApi.place(formData);
-      if (fromCart) removeItems(items.map((item) => String(item.productId)));
+      if (fromCart) removeItems(items.map((item) => cartKey(item.productId, item.isWholesalePrice)));
       showToast('success', 'Order placed! We will verify your GCash payment shortly.');
       navigate(`/track-order?highlight=${data.order.orderNumber}`);
     } catch (err) {
@@ -460,7 +461,7 @@ export default function Checkout() {
             <div className="farm-card">
               <h5 className="fw-bold mb-3">Order Summary</h5>
               {items.map((item) => (
-                <div className="d-flex justify-content-between small mb-2" key={item.productId}>
+                <div className="d-flex justify-content-between small mb-2" key={cartKey(item.productId, item.isWholesalePrice)}>
                   <span>
                     {item.name} &times; {item.quantity}
                   </span>

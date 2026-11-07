@@ -4,29 +4,36 @@ import { useCart } from '../../context/CartContext.jsx';
 import { cartApi } from '../../api/cart.js';
 import { peso } from '../../utils/peso.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { QuantityStepper } from '../../components/site/QuantityStepper.jsx';
+import { cartKey } from '../../utils/cartKey.js';
+
+const keyOf = (item) => cartKey(item.productId, item.isWholesalePrice);
 
 function CartRow({ item, selected, onToggle, onUpdate, onRemove }) {
   const [qty, setQty] = useState(item.quantity);
+  const key = keyOf(item);
+
+  useEffect(() => setQty(item.quantity), [item.quantity]);
 
   return (
-    <div className="d-flex align-items-center gap-3 p-3 border-bottom">
+    <div className="cart-row d-flex align-items-center gap-3 p-3 border-bottom">
       <input
         type="checkbox"
         className="form-check-input cart-check mt-0"
         checked={selected}
-        onChange={() => onToggle(item.productId)}
+        onChange={() => onToggle(key)}
         aria-label={`Select ${item.name} for checkout`}
       />
       <img
         src={mediaUrl(item.image) || '/placeholder.svg'}
         alt=""
-        style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: 10 }}
+        style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: 10, background: '#fff' }}
         onError={(e) => {
           e.currentTarget.onerror = null;
           e.currentTarget.src = '/placeholder.svg';
         }}
       />
-      <div className="flex-grow-1">
+      <div className="cart-row-info flex-grow-1">
         <div className="fw-bold">{item.name}</div>
         <div className="small text-muted">
           {peso(item.price)} / {item.unit}
@@ -39,23 +46,18 @@ function CartRow({ item, selected, onToggle, onUpdate, onRemove }) {
         )}
       </div>
       <div className="d-flex align-items-center gap-2">
-        <input
-          type="number"
-          value={qty}
-          min={item.minOrderQty || 1}
-          max={item.stockQty}
-          className="form-control form-control-sm"
-          style={{ width: 70 }}
-          onChange={(e) => setQty(parseInt(e.target.value, 10) || 0)}
-        />
-        <button type="button" className="btn btn-sm btn-farm-outline" onClick={() => onUpdate(item.productId, Math.max(0, qty))}>
-          Update
-        </button>
+        <QuantityStepper value={qty} min={item.minOrderQty || 1} max={item.stockQty} onChange={setQty} />
+        {/* Only appears once the quantity has been changed. */}
+        {qty !== item.quantity && (
+          <button type="button" className="btn btn-sm btn-farm-outline" onClick={() => onUpdate(key, qty)}>
+            Update
+          </button>
+        )}
       </div>
       <div className="fw-bold text-end" style={{ width: 100, color: 'var(--primary-green)' }}>
         {peso(item.subtotal)}
       </div>
-      <button type="button" className="btn btn-sm text-danger" onClick={() => onRemove(item.productId)}>
+      <button type="button" className="btn btn-sm text-danger" onClick={() => onRemove(key)}>
         <i className="far fa-trash-alt" />
       </button>
     </div>
@@ -63,7 +65,7 @@ function CartRow({ item, selected, onToggle, onUpdate, onRemove }) {
 }
 
 export default function Cart() {
-  const { items, asItemsArray, updateQuantity, removeItem } = useCart();
+  const { items, asItemsArray, updateQuantity, removeItem, keepOnly } = useCart();
   const [resolved, setResolved] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -84,21 +86,21 @@ export default function Cart() {
       setResolved(data.items);
       setSubtotal(data.subtotal);
       setLoading(false);
+      keepOnly(data.items.map(keyOf));
     });
-  }, [items, asItemsArray]);
+  }, [items, asItemsArray, keepOnly]);
 
   if (loading) return null;
 
-  const selectedItems = resolved.filter((item) => !deselected.has(String(item.productId)));
+  const selectedItems = resolved.filter((item) => !deselected.has(keyOf(item)));
   const selectedSubtotal = Math.round(selectedItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
   const allSelected = selectedItems.length === resolved.length;
   // A wholesale line below its minimum order can't be checked out.
   const belowMinimum = selectedItems.some((item) => item.quantity < (item.minOrderQty || 1));
 
-  function toggle(productId) {
+  function toggle(key) {
     setDeselected((prev) => {
       const next = new Set(prev);
-      const key = String(productId);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
@@ -106,12 +108,12 @@ export default function Cart() {
   }
 
   function toggleAll() {
-    setDeselected(allSelected ? new Set(resolved.map((item) => String(item.productId))) : new Set());
+    setDeselected(allSelected ? new Set(resolved.map(keyOf)) : new Set());
   }
 
   function checkout() {
     navigate('/checkout', {
-      state: { fromCart: true, items: selectedItems.map((item) => ({ productId: item.productId, quantity: item.quantity })) },
+      state: { fromCart: true, items: selectedItems.map((item) => ({ productId: item.productId, quantity: item.quantity, wholesale: item.isWholesalePrice })) },
     });
   }
 
@@ -143,9 +145,9 @@ export default function Cart() {
             </label>
             {resolved.map((item) => (
               <CartRow
-                key={item.productId}
+                key={keyOf(item)}
                 item={item}
-                selected={!deselected.has(String(item.productId))}
+                selected={!deselected.has(keyOf(item))}
                 onToggle={toggle}
                 onUpdate={updateQuantity}
                 onRemove={removeItem}

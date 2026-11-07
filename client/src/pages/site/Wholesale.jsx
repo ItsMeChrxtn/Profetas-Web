@@ -133,7 +133,7 @@ function WholesaleCatalog({ businessName }) {
             You're a verified wholesaler <i className="fas fa-check-circle verified-check" />
           </div>
           <div className="small text-muted">
-            {businessName ? `${businessName} gets` : 'You get'} wholesale prices on these products. Each has a minimum order shown under its price.
+            {businessName ? `${businessName} gets` : 'You get'} wholesale prices here, with the minimum order shown under each price. The Shop stays at regular prices with no minimum.
           </div>
         </div>
       </div>

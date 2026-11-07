@@ -49,7 +49,7 @@ export default function EducationPost() {
           src={mediaUrl(post.image)}
           alt=""
           className="w-100 mb-4"
-          style={{ borderRadius: 'var(--radius-md)', maxHeight: 400, objectFit: 'cover' }}
+          style={{ borderRadius: 'var(--radius-md)', maxHeight: 480, objectFit: 'contain' }}
           onError={(e) => (e.currentTarget.style.display = 'none')}
         />
       )}

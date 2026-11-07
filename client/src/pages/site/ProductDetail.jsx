@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { useCart } from '../../context/CartContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -12,6 +12,8 @@ import { mediaUrl } from '../../utils/mediaUrl.js';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const wholesaleView = searchParams.get('wholesale') === '1';
   const { addItem } = useCart();
   const { user } = useAuth();
   const location = useLocation();
@@ -27,14 +29,14 @@ export default function ProductDetail() {
     setProduct(null);
     setQty(1);
     productsApi
-      .get(id)
+      .get(id, { wholesale: wholesaleView })
       .then((data) => {
         setProduct(data.product);
         setQty(data.product.minOrderQty || 1);
         setRelated(data.related);
       })
       .catch(() => setNotFound(true));
-  }, [id]);
+  }, [id, wholesaleView]);
 
   if (notFound) {
     return (
@@ -54,13 +56,13 @@ export default function ProductDetail() {
 
   // Buy Now skips the cart: checkout gets just this item.
   function handleBuyNow() {
-    navigate('/checkout', { state: { items: [{ productId: product._id, quantity: qty }] } });
+    navigate('/checkout', { state: { items: [{ productId: product._id, quantity: qty, wholesale: product.isWholesalePrice }] } });
   }
 
   async function handleAddToCart() {
     setAdding(true);
     try {
-      await addItem(product._id, qty);
+      await addItem(product._id, qty, { wholesale: product.isWholesalePrice });
       showToast('success', `Added ${qty} × ${product.name} to cart.`);
     } catch (err) {
       showToast('error', err.message);
@@ -72,7 +74,14 @@ export default function ProductDetail() {
   return (
     <div className="container" style={{ paddingTop: 30, paddingBottom: 60 }}>
       <nav aria-label="breadcrumb" className="small mb-3">
-        <Link to="/shop">Shop</Link> / <Link to={`/shop?category=${encodeURIComponent(product.category)}`}>{product.category}</Link> /{' '}
+        {product.isWholesalePrice ? (
+          <Link to="/wholesale">Wholesale</Link>
+        ) : (
+          <>
+            <Link to="/shop">Shop</Link> / <Link to={`/shop?category=${encodeURIComponent(product.category)}`}>{product.category}</Link>
+          </>
+        )}{' '}
+        /{' '}
         {product.name}
       </nav>
 

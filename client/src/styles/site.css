@@ -192,13 +192,14 @@ a { text-decoration: none; }
 
 .product-img-wrap {
     height: 190px;
-    background: #F3F1EA;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
-.product-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+/* contain, not cover: the whole photo shows, on products and Learn posts alike. */
+.product-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
 .product-card .product-body { padding: 16px; }
 .product-card .product-cat { font-size: 11px; color: var(--accent-amber); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
@@ -751,3 +752,7 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
     padding: 2px 9px;
     margin-bottom: 6px;
 }
+
+/* Cart rows wrap on small screens so the stepper never squeezes the product name. */
+.cart-row { flex-wrap: wrap; }
+.cart-row-info { min-width: 160px; flex-basis: 160px; }
