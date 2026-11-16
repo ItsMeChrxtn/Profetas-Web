@@ -52,6 +52,7 @@ body {
     flex-direction: column;
     position: fixed;
     height: 100vh;
+    height: 100dvh; /* mobile browsers: excludes the address bar */
     z-index: 1000;
     transition: transform 0.3s ease;
 }
@@ -97,10 +98,19 @@ body {
     margin-top: 4px;
 }
 
+/* The menu scrolls on short screens; the logo and Logout stay put. */
 .sidebar-nav {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 0 20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
 }
+.sidebar-nav::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+.sidebar-header, .sidebar-footer { flex-shrink: 0; }
 
 .sidebar-nav ul {
     list-style: none;
@@ -1016,3 +1026,12 @@ tr:last-child td {
 .report-empty i { font-size: 40px; opacity: 0.3; margin-bottom: 12px; }
 .farm-visit-review { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
 @media (max-width: 768px) { .farm-visit-review { grid-template-columns: 1fr; } }
+
+/* Very short screens (e.g. a laptop zoomed in or a phone in landscape): tighter header and footer
+   so more of the menu fits before it needs to scroll. */
+@media (max-height: 700px) {
+    .sidebar-header { padding-top: 15px; padding-bottom: 15px; }
+    .logo-full-img { height: 48px; }
+    .sidebar-footer { padding: 10px 20px; }
+    .sidebar-bottom-info { display: none; }
+}
