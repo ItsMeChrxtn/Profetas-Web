@@ -756,3 +756,7 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
 /* Cart rows wrap on small screens so the stepper never squeezes the product name. */
 .cart-row { flex-wrap: wrap; }
 .cart-row-info { min-width: 160px; flex-basis: 160px; }
+
+/* Logout uses the same red as the admin panel's logout buttons. */
+.site-navbar .dropdown-item.text-danger { color: #C62828 !important; font-weight: 600; }
+.site-navbar .dropdown-item.text-danger:hover { background: #FDECEC; }

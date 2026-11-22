@@ -14,6 +14,7 @@
     --warning-text: #92400E;
     --danger-bg: #FEE2E2;
     --danger-text: #991B1B;
+    --logout-color: #C62828;
     --info-bg: #DBEAFE;
     --info-text: #1E40AF;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -153,17 +154,27 @@ body {
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Same logout red everywhere (sidebar, profile dropdown, customer site);
+   on the maroon sidebar it sits on a white button so it stays readable. */
 .logout-btn {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 14px 20px;
-    color: rgba(255,255,255,0.7);
+    width: 100%;
+    padding: 12px 20px;
+    background: #fff;
+    border: none;
+    color: var(--logout-color);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
     text-decoration: none;
-    font-weight: 500;
     border-radius: var(--radius-md);
     margin-bottom: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
+.logout-btn:hover { background: #FDECEC; }
 
 .sidebar-bottom-info {
     display: flex;
@@ -402,7 +413,8 @@ body {
 }
 
 .dropdown-menu button.text-danger {
-    color: var(--danger-text);
+    color: var(--logout-color);
+    font-weight: 600;
 }
 
 .dropdown-menu a:hover,
