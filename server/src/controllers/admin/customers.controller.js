@@ -97,7 +97,18 @@ export async function listCustomers(req, res) {
   });
 }
 
-/** Profile, order history, total spent, and account (violation) history. */
+/** 09171234567 -> xxxxxxxx567 ; juan.cruz@gmail.com -> ju********@gmail.com */
+function maskContact(value) {
+  const text = String(value || '');
+  return text ? 'x'.repeat(Math.max(0, text.length - 3)) + text.slice(-3) : null;
+}
+function maskEmail(value) {
+  const [name, domain] = String(value || '').split('@');
+  if (!domain) return value;
+  return `${name.slice(0, 2)}${'*'.repeat(Math.max(3, name.length - 2))}@${domain}`;
+}
+
+/** Profile, order history, total spent, and account (violation) history. Email and contact are masked. */
 export async function getCustomer(req, res) {
   const user = await User.findOne({ _id: req.params.id, role: 'customer' }).select('-passwordHash');
   if (!user) throw new HttpError(404, 'Customer not found.');
@@ -109,7 +120,7 @@ export async function getCustomer(req, res) {
 
   res.json({
     success: true,
-    customer: { ...user.toJSON(), status: customerStatus(user) },
+    customer: { ...user.toJSON(), email: maskEmail(user.email), contactNumber: maskContact(user.contactNumber), status: customerStatus(user) },
     orders,
     totalSpent: Math.round(totalSpent * 100) / 100,
   });

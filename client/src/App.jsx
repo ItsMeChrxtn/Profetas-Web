@@ -25,7 +25,6 @@ import Faq from './pages/site/Faq.jsx';
 
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import AdminProducts from './pages/admin/Products.jsx';
-import AdminInventory from './pages/admin/Inventory.jsx';
 import AdminOrders from './pages/admin/Orders.jsx';
 import AdminDeliveryBooking from './pages/admin/DeliveryBooking.jsx';
 import AdminPayments from './pages/admin/Payments.jsx';
@@ -50,14 +49,14 @@ export default function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="farm-visit" element={<FarmVisit />} />
               <Route path="education" element={<Education />} />
               <Route path="education/:id" element={<EducationPost />} />
               <Route path="faq" element={<Faq />} />
-              {/* Guests look up one order by number + email; logged-in users see all theirs. */}
-              <Route path="track-order" element={<TrackOrder />} />
 
+              {/* Ordering, order tracking and farm visits need an account. */}
               <Route element={<RequireAuth />}>
+                <Route path="farm-visit" element={<FarmVisit />} />
+                <Route path="track-order" element={<TrackOrder />} />
                 <Route path="shop" element={<Shop />} />
                 <Route path="cart" element={<Cart />} />
                 <Route path="wholesale" element={<Wholesale />} />
@@ -72,7 +71,6 @@ export default function App() {
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
-                <Route path="inventory" element={<AdminInventory />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="delivery-booking" element={<AdminDeliveryBooking />} />
                 <Route path="payments" element={<AdminPayments />} />

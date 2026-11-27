@@ -1,0 +1,28 @@
+/* Skeleton loaders - shared by the customer site and the admin panel. */
+.skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ECE8E1 25%, #F6F3EE 37%, #ECE8E1 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+.skeleton-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.skeleton-table { display: grid; gap: 14px; padding: 10px 0; }
+.skeleton-row { display: grid; gap: 16px; align-items: center; }
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* SweetAlert dialogs sit above the admin's own modals (z-index 2000). */
+.swal2-container { z-index: 3000 !important; }

@@ -11,23 +11,50 @@ const round2 = (n) => Math.round((n || 0) * 100) / 100;
 const NOT_CANCELLED = { status: { $ne: 'Cancelled' } };
 const NOT_ARCHIVED = { status: { $ne: 'Archived' } };
 
-/** Every day in the range as YYYY-MM-DD, so trend lines have no gaps. */
-function fillDays(start, end, rows) {
-  const byDay = new Map(rows.map((r) => [r._id, r.value]));
-  const days = [];
-  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    const key = d.toISOString().slice(0, 10);
-    days.push({ name: key.slice(5), value: round2(byDay.get(key) || 0) });
-  }
-  return days;
+// Weekly -> per day, Monthly -> per week, Yearly -> per month (set by the Reports page).
+const BUCKETS = {
+  day: { label: 'Day' },
+  week: { label: 'Week' },
+  month: { label: 'Month' },
+};
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Start of the day / Monday-week / month containing d (UTC). */
+function bucketStart(d, unit) {
+  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), unit === 'month' ? 1 : d.getUTCDate()));
+  if (unit === 'week') x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7));
+  return x;
 }
 
-const perDay = (field, value) => [
-  { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: `$${field}` } }, value } },
+function bucketLabel(d, unit) {
+  const mmdd = d.toISOString().slice(5, 10);
+  if (unit === 'week') return `Wk of ${mmdd}`;
+  if (unit === 'month') return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return mmdd;
+}
+
+/** Every bucket in the range, so trend lines have no gaps. */
+function fillBuckets(start, end, rows, unit) {
+  const byKey = new Map(rows.map((r) => [new Date(r._id).toISOString().slice(0, 10), r.value]));
+  const out = [];
+  for (let d = bucketStart(start, unit); d <= end; ) {
+    out.push({ name: bucketLabel(d, unit), value: round2(byKey.get(d.toISOString().slice(0, 10)) || 0) });
+    if (unit === 'month') d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
+    else d = new Date(d.getTime() + (unit === 'week' ? 7 : 1) * 24 * 60 * 60 * 1000);
+  }
+  return out;
+}
+
+const perBucket = (field, value, unit) => [
+  { $group: { _id: { $dateTrunc: { date: `$${field}`, unit, startOfWeek: 'monday' } }, value } },
   { $sort: { _id: 1 } },
 ];
 
-async function salesReport({ start, end }) {
+// Prices are VAT-inclusive (12%), so the VAT inside an amount is amount x 12/112.
+const VAT_RATE = 0.12;
+const vatOf = (amount) => round2((amount * VAT_RATE) / (1 + VAT_RATE));
+
+async function salesReport({ start, end, unit }) {
   const match = { orderDate: { $gte: start, $lte: end }, ...NOT_CANCELLED };
   const [summary, byCategory, topProducts, trend] = await Promise.all([
     Order.aggregate([{ $match: match }, { $group: { _id: null, orders: { $sum: 1 }, revenue: { $sum: '$totalAmount' }, fees: { $sum: '$deliveryFee' } } }]),
@@ -45,16 +72,23 @@ async function salesReport({ start, end }) {
       { $sort: { revenue: -1 } },
       { $limit: 10 },
     ]),
-    Order.aggregate([{ $match: match }, ...perDay('orderDate', { $sum: '$totalAmount' })]),
+    Order.aggregate([{ $match: match }, ...perBucket('orderDate', { $sum: '$totalAmount' }, unit)]),
   ]);
   const { orders = 0, revenue = 0, fees = 0 } = summary[0] || {};
+  const revenueTrend = fillBuckets(start, end, trend, unit);
   return {
     stats: [
       { label: 'Total Revenue', value: round2(revenue), kind: 'money', note: `${orders} non-cancelled orders` },
       { label: 'Average Order Value', value: orders ? round2(revenue / orders) : 0, kind: 'money', note: 'Per order' },
       { label: 'Delivery Fees Collected', value: round2(fees), kind: 'money', note: 'Included in revenue' },
+      { label: 'VAT Collected (12%)', value: vatOf(revenue), kind: 'money', note: 'Included in VAT-inclusive prices' },
     ],
-    line: { title: 'Revenue per Day', data: fillDays(start, end, trend), kind: 'money' },
+    line: { title: `Revenue per ${BUCKETS[unit].label}`, data: revenueTrend, kind: 'money' },
+    vatLine: {
+      title: `VAT Collected per ${BUCKETS[unit].label}`,
+      data: revenueTrend.map((b) => ({ name: b.name, value: vatOf(b.value) })),
+      kind: 'money',
+    },
     bar: { title: 'Sales by Category', data: byCategory.map((c) => ({ name: c._id, value: round2(c.value) })), kind: 'money' },
     pie: { title: 'Category Share', data: byCategory.map((c) => ({ name: c._id, value: round2(c.value) })) },
     table: {
@@ -66,12 +100,12 @@ async function salesReport({ start, end }) {
   };
 }
 
-async function ordersReport({ start, end }) {
+async function ordersReport({ start, end, unit }) {
   const match = { orderDate: { $gte: start, $lte: end } };
   const [byStatus, byMethod, trend, recent] = await Promise.all([
     Order.aggregate([{ $match: match }, { $group: { _id: '$status', value: { $sum: 1 } } }, { $sort: { value: -1 } }]),
     Order.aggregate([{ $match: match }, { $group: { _id: '$deliveryMethod', value: { $sum: 1 } } }]),
-    Order.aggregate([{ $match: match }, ...perDay('orderDate', { $sum: 1 })]),
+    Order.aggregate([{ $match: match }, ...perBucket('orderDate', { $sum: 1 }, unit)]),
     Order.find(match).sort({ orderDate: -1 }).limit(50).populate('customer', 'firstName lastName').lean(),
   ]);
   const total = byStatus.reduce((sum, s) => sum + s.value, 0);
@@ -82,7 +116,7 @@ async function ordersReport({ start, end }) {
       { label: 'Completed', value: count('Completed'), kind: 'number', note: `${count('Cancelled')} cancelled` },
       { label: 'Still Open', value: total - count('Completed') - count('Cancelled'), kind: 'number', note: 'Pending to Shipped' },
     ],
-    line: { title: 'Orders per Day', data: fillDays(start, end, trend), kind: 'number' },
+    line: { title: `Orders per ${BUCKETS[unit].label}`, data: fillBuckets(start, end, trend, unit), kind: 'number' },
     bar: { title: 'Orders by Status', data: byStatus.map((s) => ({ name: s._id, value: s.value })), kind: 'number' },
     pie: { title: 'Delivery Method', data: byMethod.map((m) => ({ name: m._id, value: m.value })) },
     table: {
@@ -101,7 +135,7 @@ async function ordersReport({ start, end }) {
   };
 }
 
-async function customersReport({ start, end }) {
+async function customersReport({ start, end, unit }) {
   const [totals, signups, topCustomers] = await Promise.all([
     User.aggregate([
       { $match: { role: 'customer' } },
@@ -115,7 +149,7 @@ async function customersReport({ start, end }) {
         },
       },
     ]),
-    User.aggregate([{ $match: { role: 'customer', createdAt: { $gte: start, $lte: end } } }, ...perDay('createdAt', { $sum: 1 })]),
+    User.aggregate([{ $match: { role: 'customer', createdAt: { $gte: start, $lte: end } } }, ...perBucket('createdAt', { $sum: 1 }, unit)]),
     Order.aggregate([
       { $match: { orderDate: { $gte: start, $lte: end }, ...NOT_CANCELLED } },
       { $group: { _id: '$customer', orders: { $sum: 1 }, spent: { $sum: '$totalAmount' } } },
@@ -132,7 +166,7 @@ async function customersReport({ start, end }) {
       { label: 'New in Range', value: newInRange, kind: 'number', note: 'Sign-ups' },
       { label: 'Wholesalers', value: wholesalers, kind: 'number', note: 'Verified accounts' },
     ],
-    line: { title: 'New Customers per Day', data: fillDays(start, end, signups), kind: 'number' },
+    line: { title: `New Customers per ${BUCKETS[unit].label}`, data: fillBuckets(start, end, signups, unit), kind: 'number' },
     bar: {
       title: 'Top Customers by Spend',
       data: topCustomers.map((c) => ({ name: c.u ? `${c.u.firstName} ${c.u.lastName}` : 'Deleted account', value: round2(c.spent) })),
@@ -217,13 +251,14 @@ async function productsReport({ start, end }) {
 
 const REPORTS = { sales: salesReport, orders: ordersReport, customers: customersReport, inventory: inventoryReport, products: productsReport };
 
-/** GET /admin/reports?type=sales|orders|customers|inventory|products&startDate&endDate */
+/** GET /admin/reports?type=sales|orders|customers|inventory|products&startDate&endDate&groupBy=day|week|month */
 export async function getReports(req, res) {
   const type = req.query.type || 'sales';
   const build = REPORTS[type];
   if (!build) throw new HttpError(400, 'Unknown report type.');
 
   const range = parseDateRange(req.query);
+  range.unit = BUCKETS[req.query.groupBy] ? req.query.groupBy : 'day';
   res.json({
     success: true,
     type,

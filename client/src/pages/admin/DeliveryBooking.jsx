@@ -6,7 +6,7 @@ import { peso } from '../../utils/peso.js';
 import { formatDateTime, formatDate, formatTime, orderNumberLabel } from '../../utils/dateFormat.js';
 import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { showToast } from '../../utils/toast.js';
-import { confirmAction } from '../../utils/confirm.js';
+import { confirmAction, promptReason } from '../../utils/confirm.js';
 import { API_BASE } from '../../utils/apiBase.js';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
@@ -126,6 +126,35 @@ const STYLE = `
 @media (max-width: 992px) { .booking-grid { grid-template-columns: 1fr; } }
 `;
 
+/** Horizontal status steps; only the step right after the current one is clickable. */
+function StatusStepper({ order, disabled, onAdvance }) {
+  const steps = (order.deliveryMethod === 'Self-Pickup' ? PICKUP_STATUSES : STATUSES).filter((s) => s !== 'Cancelled');
+  const current = steps.indexOf(order.status);
+  const finished = ['Completed', 'Cancelled'].includes(order.status);
+
+  return (
+    <div className={`status-stepper ${order.status === 'Cancelled' ? 'is-cancelled' : ''}`}>
+      {steps.map((step, i) => {
+        const done = i <= current;
+        const isNext = !finished && i === current + 1;
+        return (
+          <button
+            key={step}
+            type="button"
+            className={`status-step ${done ? 'done' : ''} ${isNext ? 'next' : ''}`}
+            disabled={!isNext || disabled}
+            onClick={() => onAdvance(step)}
+            title={isNext ? `Mark as ${step}` : undefined}
+          >
+            <span className="status-step-dot">{done ? <i className="fas fa-check" /> : i + 1}</span>
+            <span className="status-step-label">{step}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DeliveryBooking() {
   const [searchParams, setSearchParams] = useSearchParams();
   const orderId = searchParams.get('order_id');
@@ -133,7 +162,6 @@ export default function DeliveryBooking() {
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);
-  const [statusValue, setStatusValue] = useState('');
   const [updating, setUpdating] = useState(false);
   const [booking, setBooking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -142,7 +170,6 @@ export default function DeliveryBooking() {
     if (!orderId) return;
     adminOrdersApi.get(orderId).then((data) => {
       setOrder(data.order);
-      setStatusValue(data.order.status);
     });
     setQueueRefresh((n) => n + 1);
   }
@@ -160,12 +187,27 @@ export default function DeliveryBooking() {
     return () => source.close();
   }, [orderId]);
 
-  async function handleUpdateStatus(e) {
-    e.preventDefault();
+  // Status only moves forward, one confirmed step at a time; Cancel asks for a reason.
+  async function changeStatus(status) {
+    let reason;
+    if (status === 'Cancelled') {
+      reason = await promptReason('Cancel this order?', {
+        text: 'The customer will see this reason. This cannot be undone.',
+        confirmButtonText: 'Yes, cancel order',
+      });
+      if (!reason) return;
+    } else {
+      const ok = await confirmAction(`Mark this order as ${status}?`, {
+        icon: 'question',
+        text: "Status can't be moved back once it's changed.",
+        confirmButtonText: `Yes, mark as ${status}`,
+      });
+      if (!ok) return;
+    }
     setUpdating(true);
     try {
-      await adminOrdersApi.updateStatus(orderId, statusValue);
-      showToast('success', `Order status updated to ${statusValue}.`);
+      await adminOrdersApi.updateStatus(orderId, status, reason);
+      showToast('success', `Order status updated to ${status}.`);
       load();
     } catch (err) {
       showToast('error', err.message);
@@ -303,23 +345,24 @@ export default function DeliveryBooking() {
                 <div className="update-status-title" id="statusUpdate">
                   <i className="fas fa-sync-alt" /> Status Update
                 </div>
-                <p className="update-status-sub">Update the order status once the delivery booking is confirmed.</p>
+                <p className="update-status-sub">Click the next step to move the order forward. A step can't be undone.</p>
 
-                <form onSubmit={handleUpdateStatus}>
-                  <div className="label-group">
-                    <label>Update Status</label>
-                    <select className="form-control" value={statusValue} onChange={(e) => setStatusValue(e.target.value)}>
-                      {(order.deliveryMethod === 'Self-Pickup' ? PICKUP_STATUSES : STATUSES).map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                <StatusStepper order={order} disabled={updating} onAdvance={changeStatus} />
+
+                {order.status === 'Cancelled' ? (
+                  <div className="alert-box" style={{ background: '#FEE2E2', borderColor: '#FECACA', color: '#991B1B', marginTop: 15, marginBottom: 0 }}>
+                    <i className="fas fa-ban" />
+                    <span>
+                      <strong>Cancelled.</strong> {order.cancelReason ? `Reason: ${order.cancelReason}` : ''}
+                    </span>
                   </div>
-                  <button type="submit" className="btn-update" disabled={updating}>
-                    <i className="far fa-check-circle" /> {updating ? 'Updating...' : 'Update Status'}
-                  </button>
-                </form>
+                ) : (
+                  !['Completed', 'Shipped'].includes(order.status) && (
+                    <button type="button" className="btn-update" style={{ background: '#fff', color: '#C62828', border: '1px solid #FECACA' }} disabled={updating} onClick={() => changeStatus('Cancelled')}>
+                      <i className="fas fa-ban" /> Cancel Order
+                    </button>
+                  )
+                )}
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { StatCard } from '../../components/admin/StatCard.jsx';
 import { AdminStatusPill } from '../../components/admin/StatusPill.jsx';
 import { peso } from '../../utils/peso.js';
 import { formatDate, orderNumberLabel } from '../../utils/dateFormat.js';
+import { SkeletonLine, SkeletonTable } from '../../components/Skeleton.jsx';
 
 const PIE_COLORS = ['#7B1E2B', '#F59E0B', '#EF4444'];
 
@@ -17,7 +18,19 @@ export default function Dashboard() {
     adminDashboardApi.get().then(setData);
   }, []);
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <>
+        <SkeletonLine width={200} height={28} style={{ marginBottom: 24 }} />
+        <div className="stats-grid">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className="skeleton" style={{ height: 110, borderRadius: 16 }} />
+          ))}
+        </div>
+        <SkeletonTable rows={6} cols={4} />
+      </>
+    );
+  }
 
   const { stats, recentOrders, topProducts, salesTrend, stockBreakdown } = data;
   const totalStockedProducts = stockBreakdown.inStock + stockBreakdown.lowStock + stockBreakdown.outOfStock;
@@ -47,7 +60,7 @@ export default function Dashboard() {
             </h3>
             <span className="text-muted small">Last 30 Days</span>
           </div>
-          <div style={{ height: 300 }}>
+          <div className="chart-box chart-md">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={salesTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                 <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { month: 'short', day: 'numeric' })} minTickGap={30} fontSize={11} />
@@ -150,11 +163,11 @@ export default function Dashboard() {
             <h3 className="card-title">
               <i className="fas fa-warehouse" /> Inventory Summary
             </h3>
-            <Link to="/admin/inventory" className="btn btn-outline btn-sm" style={{ padding: '8px 15px', fontSize: 12 }}>
+            <Link to="/admin/products?stock=low" className="btn btn-outline btn-sm" style={{ padding: '8px 15px', fontSize: 12 }}>
               View Inventory
             </Link>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', height: 250 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }} className="chart-box chart-sm">
             <div style={{ position: 'relative', width: 150, height: 150 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

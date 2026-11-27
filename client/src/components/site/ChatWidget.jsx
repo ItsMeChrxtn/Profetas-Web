@@ -6,14 +6,14 @@ export function ChatWidget({ chatStatus, facebookUrl }) {
 
   return (
     <>
-      <button className="chat-widget-btn" onClick={() => setOpen((v) => !v)} title="Chat with us">
-        <i className="fas fa-comment-dots" />
+      <button className="chat-widget-btn" onClick={() => setOpen((v) => !v)} title="Chat with us on Facebook Messenger">
+        <i className="fab fa-facebook-messenger" />
         <span className={`chat-status-dot ${isOnline ? 'online' : 'offline'}`} />
       </button>
       {open && (
         <div className="chat-panel" id="chatPanel">
           <div className="chat-panel-header">
-            <span><i className="fas fa-comment-dots me-2" />Farm Support</span>
+            <span><i className="fab fa-facebook-messenger me-2" />Chat with Us</span>
             <button className="btn btn-sm text-white" onClick={() => setOpen(false)}>
               <i className="fas fa-times" />
             </button>

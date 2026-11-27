@@ -9,6 +9,8 @@ import { showToast } from '../../utils/toast.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { isSuperAdmin } from '../../utils/roles.js';
+import { blockNonDigitKeys } from '../../utils/digits.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 const CATEGORIES = ['Fresh', 'Value-Added', 'Farm Inputs'];
 
@@ -107,7 +109,16 @@ function ProductFormModal({ product, onClose, onSaved }) {
           </div>
           <div className="form-group">
             <label>Stock Quantity</label>
-            <input type="number" className="form-control" required value={form.stockQty} onChange={(e) => update('stockQty', e.target.value)} placeholder="0" />
+            <input
+              type="number"
+              min="0"
+              className="form-control"
+              required
+              value={form.stockQty}
+              onKeyDown={blockNonDigitKeys}
+              onChange={(e) => update('stockQty', e.target.value === '' ? '' : String(Math.max(0, parseInt(e.target.value, 10) || 0)))}
+              placeholder="0"
+            />
           </div>
         </div>
         <div className="form-group">
@@ -188,8 +199,16 @@ function ProductFormModal({ product, onClose, onSaved }) {
 }
 
 const PRODUCT_STATUSES = ['Active', 'Inactive'];
+const STOCK_FILTERS = [
+  { value: '', label: 'All Stock' },
+  { value: 'in', label: 'In Stock' },
+  { value: 'low', label: 'Low Stock' },
+  { value: 'out', label: 'Out of Stock' },
+];
+const DOT_COLOR = { instock: '#166534', lowstock: '#F59E0B', outofstock: '#EF4444' };
 
 export default function Products() {
+  const [loaded, setLoaded] = useState(false);
   // Only the super admin adds, edits or archives products; admins see the list.
   const { user } = useAuth();
   const canManage = isSuperAdmin(user);
@@ -197,6 +216,7 @@ export default function Products() {
   const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
   const status = searchParams.get('status') || '';
+  const stock = searchParams.get('stock') || '';
   const page = parseInt(searchParams.get('page'), 10) || 1;
 
   const [searchInput, setSearchInput] = useState(q);
@@ -205,13 +225,14 @@ export default function Products() {
   const [modal, setModal] = useState(null);
 
   function reload() {
-    adminProductsApi.list({ q, category, status, page }).then((data) => {
+    adminProductsApi.list({ q, category, status, stockStatus: stock, page }).then((data) => {
+      setLoaded(true);
       setItems(data.items);
       setPagination(data.pagination);
     });
   }
 
-  useEffect(reload, [q, category, status, page]);
+  useEffect(reload, [q, category, status, stock, page]);
 
   async function handleArchive(product) {
     const confirmed = await confirmAction(`Archive "${product.name}"? It will be hidden from the shop and can't be ordered. Past orders keep their details.`, {
@@ -276,10 +297,24 @@ export default function Products() {
           </div>
 
           <div className="status-filter-row">
+            {STOCK_FILTERS.map((f) => (
+              <button
+                key={f.label}
+                type="button"
+                className={`status-filter-pill ${stock === f.value ? 'active' : ''}`}
+                onClick={() => setSearchParams({ q, category, status, stock: f.value })}
+              >
+                {f.value && <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', marginRight: 6, background: DOT_COLOR[f.label.replace(/\s/g, '').toLowerCase()] }} />}
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="status-filter-row">
             <button
               type="button"
               className={`status-filter-pill ${status === '' ? 'active' : ''}`}
-              onClick={() => setSearchParams({ q, category, status: '' })}
+              onClick={() => setSearchParams({ q, category, status: '', stock })}
             >
               All Status
             </button>
@@ -288,7 +323,7 @@ export default function Products() {
                 key={s}
                 type="button"
                 className={`status-filter-pill ${status === s ? 'active' : ''}`}
-                onClick={() => setSearchParams({ q, category, status: s })}
+                onClick={() => setSearchParams({ q, category, status: s, stock })}
               >
                 {s}
               </button>
@@ -296,6 +331,9 @@ export default function Products() {
           </div>
         </div>
 
+        {!loaded ? (
+          <SkeletonTable rows={6} cols={6} />
+        ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -339,7 +377,8 @@ export default function Products() {
                       {peso(product.price)} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 11 }}>/ {product.unit}</span>
                     </td>
                     <td>
-                      <span className={`status-pill status-${stockClass}`}>
+                      <span className={`status-pill status-${stockClass}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: DOT_COLOR[stockClass] }} />
                         {product.stockQty} - {stockStatus}
                       </span>
                     </td>
@@ -371,6 +410,7 @@ export default function Products() {
             </tbody>
           </table>
         </div>
+        )}
 
         <div className="card-footer" style={{ marginTop: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>
@@ -381,7 +421,7 @@ export default function Products() {
               <button
                 key={i}
                 className={`btn btn-icon ${i === page ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setSearchParams({ q, category, status, page: i })}
+                onClick={() => setSearchParams({ q, category, status, stock, page: i })}
               >
                 {i}
               </button>

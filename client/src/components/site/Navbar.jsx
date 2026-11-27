@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
+import { confirmLogout } from '../../utils/confirm.js';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -119,7 +120,7 @@ export function Navbar({ notifications = emptyNotifications }) {
                         <hr className="dropdown-divider" />
                       </li>
                       <li>
-                        <button className="dropdown-item text-danger" onClick={() => { setProfileOpen(false); logout(); }}>
+                        <button className="dropdown-item text-danger" onClick={() => { setProfileOpen(false); confirmLogout(logout); }}>
                           <i className="fas fa-sign-out-alt me-2" />Logout
                         </button>
                       </li>

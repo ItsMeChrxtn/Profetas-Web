@@ -71,7 +71,7 @@ export function useAdminNotifications(enabled) {
         'lowstock',
         `lowstock-${product._id}-${product.status}`,
         `${label}: ${product.name} (${product.stockQty} left)`,
-        '/admin/inventory'
+        '/admin/products?stock=low'
       );
     });
 

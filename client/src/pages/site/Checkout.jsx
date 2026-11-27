@@ -10,6 +10,8 @@ import { ReceiptUploader } from '../../components/site/ReceiptUploader.jsx';
 import { showToast } from '../../utils/toast.js';
 import { useSiteSettings } from '../../context/SiteSettingsContext.jsx';
 import { cartKey } from '../../utils/cartKey.js';
+import { digitsOnly } from '../../utils/digits.js';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 const DELIVERY_METHODS = ['Lalamove', 'Self-Pickup'];
 const GCASH_QR_IMAGE = '/images/gcash-qr.png';
@@ -204,7 +206,7 @@ export default function Checkout() {
     }
   }
 
-  if (!items) return null;
+  if (!items) return <SkeletonPage />;
 
   const isPickup = deliveryMethod === 'Self-Pickup';
   const isLalamove = deliveryMethod === 'Lalamove';
@@ -449,11 +451,17 @@ export default function Checkout() {
                   type="text"
                   className="form-control"
                   placeholder="e.g. 1234567890123"
+                  inputMode="numeric"
+                  maxLength={20}
                   value={referenceNumber}
-                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  onChange={(e) => setReferenceNumber(digitsOnly(e.target.value, 20))}
                 />
               </div>
-              <ReceiptUploader onFileSelected={setReceiptFile} referenceNumber={referenceNumber} onReferenceDetected={setReferenceNumber} />
+              <ReceiptUploader
+                onFileSelected={setReceiptFile}
+                referenceNumber={referenceNumber}
+                onReferenceDetected={(ref) => setReferenceNumber(digitsOnly(ref, 20))}
+              />
             </div>
           </div>
 

@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { showToast } from '../../utils/toast.js';
 import { PasswordInput, PasswordLengthHint, PasswordMatchHint } from '../../components/site/PasswordInput.jsx';
+import { TermsModal } from '../../components/site/TermsModal.jsx';
+import { digitsOnly } from '../../utils/digits.js';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -15,6 +17,9 @@ export default function Register() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', contactNumber: '', password: '', confirmPassword: '' });
   const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState([]);
+  // Terms must be opened and read to the end before the account can be created.
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -36,7 +41,7 @@ export default function Register() {
     setErrors([]);
     setSubmitting(true);
     try {
-      await register(form);
+      await register({ ...form, acceptTerms: acceptedTerms });
       showToast('success', `We sent a verification code to ${form.email}.`);
       setStep('otp');
       setCooldown(RESEND_COOLDOWN_SECONDS);
@@ -167,11 +172,15 @@ export default function Register() {
             <label className="form-label">Contact Number</label>
             <input
               type="text"
+              inputMode="numeric"
+              maxLength={11}
               className="form-control"
-              placeholder="09xx xxx xxxx"
+              placeholder="09XXXXXXXXX"
               value={form.contactNumber}
-              onChange={(e) => update('contactNumber', e.target.value)}
+              onChange={(e) => update('contactNumber', digitsOnly(e.target.value, 11))}
+              required
             />
+            <div className="form-text">11 digits, numbers only.</div>
           </div>
           <div className="mb-3">
             <label className="form-label">Password</label>
@@ -188,10 +197,35 @@ export default function Register() {
             />
             <PasswordMatchHint password={form.password} confirmPassword={form.confirmPassword} />
           </div>
-          <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting}>
+          <div className="terms-check mb-3">
+            <input
+              type="checkbox"
+              id="acceptTerms"
+              className="form-check-input mt-0"
+              checked={acceptedTerms}
+              onChange={() => (acceptedTerms ? setAcceptedTerms(false) : setShowTerms(true))}
+            />
+            <label htmlFor="acceptTerms" className="small mb-0">
+              I have read and agree to the{' '}
+              <button type="button" className="btn btn-link p-0 align-baseline small" onClick={() => setShowTerms(true)}>
+                Terms and Conditions
+              </button>
+            </label>
+          </div>
+          <button type="submit" className="btn btn-farm-primary w-100" disabled={submitting || !acceptedTerms}>
             {submitting ? 'Sending Code...' : 'Create Account'}
           </button>
+          {!acceptedTerms && <div className="small text-muted text-center mt-2">Read and accept the Terms and Conditions to continue.</div>}
         </form>
+        {showTerms && (
+          <TermsModal
+            onClose={() => setShowTerms(false)}
+            onAgree={() => {
+              setAcceptedTerms(true);
+              setShowTerms(false);
+            }}
+          />
+        )}
 
         <p className="text-center mt-3 mb-0 small">
           Already have an account? <Link to="/login">Log in</Link>

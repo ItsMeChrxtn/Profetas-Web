@@ -11,8 +11,10 @@ import { todayDateString, formatDate } from '../../utils/dateFormat.js';
 import { toCsv, downloadCsv } from '../../utils/csv.js';
 import { downloadPdfTable } from '../../utils/pdf.js';
 import { showToast } from '../../utils/toast.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 export default function Customers() {
+  const [loaded, setLoaded] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const page = parseInt(searchParams.get('page'), 10) || 1;
@@ -28,6 +30,7 @@ export default function Customers() {
 
   useEffect(() => {
     adminCustomersApi.list({ q, page }).then((data) => {
+      setLoaded(true);
       setItems(data.items);
       setPagination(data.pagination);
     });
@@ -111,6 +114,9 @@ export default function Customers() {
           </form>
         </div>
 
+        {!loaded ? (
+          <SkeletonTable rows={6} cols={7} />
+        ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -184,6 +190,7 @@ export default function Customers() {
             </tbody>
           </table>
         </div>
+        )}
 
         <div className="card-footer" style={{ marginTop: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>

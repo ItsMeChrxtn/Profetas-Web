@@ -74,14 +74,15 @@ export async function listFeatured(req, res) {
 }
 
 /** Active products ranked by a per-product score from non-cancelled orders since `since`. */
-async function rankProducts({ since, score, limit = 4 }) {
-  const match = { status: { $ne: 'Cancelled' } };
+async function rankProducts({ since, score, limit = 4, exclude = [], onlyCompleted = false }) {
+  const match = onlyCompleted ? { status: 'Completed' } : { status: { $ne: 'Cancelled' } };
   if (since) match.orderDate = { $gte: since };
 
   const ranked = await Order.aggregate([
     { $match: match },
     { $unwind: '$items' },
     { $group: { _id: '$items.product', score: score } },
+    { $match: { _id: { $nin: exclude } } },
     { $sort: { score: -1 } },
     { $limit: 20 },
   ]);
@@ -94,16 +95,27 @@ async function rankProducts({ since, score, limit = 4 }) {
     .slice(0, limit);
 }
 
-/** Best Sellers: most units sold, all time. */
+const BEST_SELLER_FORMULA = { onlyCompleted: true, score: { $sum: '$items.quantity' } };
+
+function bestSellers() {
+  return rankProducts(BEST_SELLER_FORMULA);
+}
+
+/** Best Sellers: most units sold in completed orders, all time. */
 export async function listBestSellers(req, res) {
-  const items = await rankProducts({ score: { $sum: '$items.quantity' } });
+  const items = await bestSellers();
   res.json({ success: true, items: items.map((p) => forViewer(p)) });
 }
 
-/** Popular: ordered by the most customers (distinct orders) in the last 30 days. */
+/**
+ * Popular This Month: how many separate orders included the product in the
+ * last 30 days (any status but Cancelled) - a "trending now" measure, unlike
+ * Best Sellers' all-time units. Best Sellers are left out so the rows differ.
+ */
 export async function listPopular(req, res) {
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const items = await rankProducts({ since, score: { $sum: 1 } });
+  const exclude = (await bestSellers()).map((p) => p._id);
+  const items = await rankProducts({ since, exclude, score: { $sum: 1 } });
   res.json({ success: true, items: items.map((p) => forViewer(p)) });
 }
 

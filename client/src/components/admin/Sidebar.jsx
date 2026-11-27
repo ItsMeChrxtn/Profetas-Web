@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ADMIN_NAV_ITEMS } from './navItems.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { isSuperAdmin } from '../../utils/roles.js';
+import { confirmLogout } from '../../utils/confirm.js';
 
 export function Sidebar({ open, onNavigate }) {
   const { user, logout } = useAuth();
@@ -36,7 +37,7 @@ export function Sidebar({ open, onNavigate }) {
       </nav>
 
       <div className="sidebar-footer">
-        <button type="button" className="logout-btn" onClick={logout}>
+        <button type="button" className="logout-btn" onClick={() => confirmLogout(logout)}>
           <i className="fas fa-sign-out-alt" />
           <span>Logout</span>
         </button>

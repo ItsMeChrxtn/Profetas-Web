@@ -12,6 +12,7 @@ const farmVisitSchema = new mongoose.Schema(
     numberOfVisitors: { type: Number, default: 1, min: 1 },
     status: { type: String, enum: FARM_VISIT_STATUSES, default: 'Pending' },
     notes: { type: String, default: null },
+    cancelReason: { type: String, default: null },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
 );

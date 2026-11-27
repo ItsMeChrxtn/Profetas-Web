@@ -13,6 +13,10 @@ async function request(path, options = {}) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    // Another device logged into this account (or the session expired): the app logs out here.
+    if (res.status === 401 && path !== '/auth/login' && path !== '/auth/me') {
+      window.dispatchEvent(new CustomEvent('auth:ended', { detail: data.message }));
+    }
     const error = new Error(data.message || 'Something went wrong. Please try again.');
     error.status = res.status;
     error.errors = data.errors;

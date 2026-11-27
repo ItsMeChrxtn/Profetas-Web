@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { farmVisitsApi } from '../../api/farmVisits.js';
 import { formatDate, formatTime, formatDateTime } from '../../utils/dateFormat.js';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 const STATUSES = ['Pending', 'Confirmed', 'Cancelled'];
 const STATUS_ICONS = { Pending: 'fa-clock', Confirmed: 'fa-check-circle', Cancelled: 'fa-times-circle' };
@@ -16,7 +17,7 @@ export default function MyFarmVisits() {
     farmVisitsApi.mine().then((data) => setVisits(data.visits));
   }, []);
 
-  if (!visits) return null;
+  if (!visits) return <SkeletonPage />;
 
   const filtered = status ? visits.filter((v) => v.status === status) : visits;
 
@@ -107,6 +108,11 @@ export default function MyFarmVisits() {
                     </div>
                   )}
                 </div>
+                {visit.status === 'Cancelled' && visit.cancelReason && (
+                  <div className="alert alert-danger small py-2 mt-3 mb-0">
+                    <strong>Reason for cancelling:</strong> {visit.cancelReason}
+                  </div>
+                )}
               </div>
             ))
           )}

@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { RichText } from '../../components/RichText.jsx';
 import { WholesaleInfo } from '../../components/site/WholesaleInfo.jsx';
+import { SkeletonCards } from '../../components/Skeleton.jsx';
 
 const HERO_SLIDE_MS = 6000;
 
@@ -77,7 +78,7 @@ export default function Home() {
     const timer = setTimeout(() => document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' }), 150);
     return () => clearTimeout(timer);
   }, [location.hash]);
-  const [featured, setFeatured] = useState([]);
+  const [featured, setFeatured] = useState(null);
   const [bestSellers, setBestSellers] = useState([]);
   const [popular, setPopular] = useState([]);
 
@@ -164,8 +165,9 @@ export default function Home() {
           )}
         </div>
 
+        {!featured && <SkeletonCards count={4} />}
         <div className="row g-4">
-          {featured.map((p) => (
+          {(featured || []).map((p) => (
             <div className="col-6 col-md-4 col-lg-3" key={p._id}>
               <ProductCard product={p} />
             </div>

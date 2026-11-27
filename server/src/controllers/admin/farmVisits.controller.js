@@ -8,8 +8,9 @@ export async function listAdminFarmVisits(req, res) {
 }
 
 export async function updateFarmVisitStatus(req, res) {
-  const { status } = req.body;
+  const { status, reason } = req.body;
   if (!FARM_VISIT_STATUS_VALUES.includes(status)) throw new HttpError(400, 'Please choose a valid status.');
+  if (status === 'Cancelled' && !reason?.trim()) throw new HttpError(400, 'Please give a reason for cancelling this visit.');
 
   const existing = await FarmVisit.findById(req.params.id);
   if (!existing) throw new HttpError(404, 'Visit not found.');
@@ -18,7 +19,11 @@ export async function updateFarmVisitStatus(req, res) {
     throw new HttpError(409, 'Another visit is already confirmed on this date.');
   }
 
-  const visit = await FarmVisit.findByIdAndUpdate(req.params.id, { status }, { new: true });
+  const visit = await FarmVisit.findByIdAndUpdate(
+    req.params.id,
+    { status, cancelReason: status === 'Cancelled' ? reason.trim() : null },
+    { new: true }
+  );
 
   if (visit.customer) {
     appEvents.emit('farmvisit:updated', {

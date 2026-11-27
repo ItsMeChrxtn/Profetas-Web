@@ -85,12 +85,29 @@ export async function getOrder(req, res) {
 }
 
 export async function updateOrderStatus(req, res) {
-  const { status } = req.body;
-  const existing = await Order.findById(req.params.id).select('deliveryMethod');
+  const { status, reason } = req.body;
+  const existing = await Order.findById(req.params.id).select('deliveryMethod status');
   if (!existing) throw new HttpError(404, 'Order not found.');
   if (!statusesFor(existing.deliveryMethod).includes(status)) throw new HttpError(400, 'Please choose a valid status.');
 
-  const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+  // Status only moves forward; Completed and Cancelled are final.
+  if (['Completed', 'Cancelled'].includes(existing.status)) {
+    throw new HttpError(400, `This order is already ${existing.status.toLowerCase()} and can no longer be changed.`);
+  }
+  const flow = statusesFor(existing.deliveryMethod).filter((s) => s !== 'Cancelled');
+  if (status === 'Cancelled') {
+    if (existing.status === 'Shipped') throw new HttpError(400, 'A shipped order can no longer be cancelled.');
+    if (!reason?.trim()) throw new HttpError(400, 'Please give a reason for cancelling this order.');
+  } else if (flow.indexOf(status) !== flow.indexOf(existing.status) + 1) {
+    // One step at a time, matching the admin's status stepper.
+    throw new HttpError(400, `This order can only move to the next step: ${flow[flow.indexOf(existing.status) + 1] || 'none'}.`);
+  }
+
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { status, cancelReason: status === 'Cancelled' ? reason.trim() : null },
+    { new: true }
+  );
 
   appEvents.emit('order:updated', {
     customerId: order.customer,

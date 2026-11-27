@@ -4,12 +4,25 @@ import { farmVisitsApi } from '../../api/farmVisits.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { todayDateString, formatDate } from '../../utils/dateFormat.js';
 import { VisitCalendar } from '../../components/VisitCalendar.jsx';
+import { digitsOnly, blockNonDigitKeys } from '../../utils/digits.js';
+
+const MAX_VISITORS = 100;
+
+// Every 30 minutes from 7:00 AM to 5:00 PM.
+const TIME_SLOTS = Array.from({ length: 21 }, (_, i) => {
+  const minutes = 7 * 60 + i * 30;
+  const value = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  const h = Math.floor(minutes / 60);
+  const label = `${h % 12 || 12}:${String(minutes % 60).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  return { value, label };
+});
 
 export default function FarmVisit() {
   const { user } = useAuth();
   const [form, setForm] = useState({
     name: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
-    contactNumber: '',
+    // Taken from the account; still editable for this request.
+    contactNumber: digitsOnly(user?.contactNumber, 11),
     visitDate: '',
     visitTime: '',
     numberOfVisitors: '1',
@@ -95,10 +108,12 @@ export default function FarmVisit() {
               <label className="form-label">Contact Number</label>
               <input
                 type="text"
+                inputMode="numeric"
+                maxLength={11}
                 className="form-control"
-                placeholder="09xx xxx xxxx"
+                placeholder="09XXXXXXXXX"
                 value={form.contactNumber}
-                onChange={(e) => update('contactNumber', e.target.value)}
+                onChange={(e) => update('contactNumber', digitsOnly(e.target.value, 11))}
                 required
               />
             </div>
@@ -116,17 +131,32 @@ export default function FarmVisit() {
             </div>
             <div className="row g-3">
               <div className="col-md-6 mb-3">
-                <label className="form-label">Visit Time</label>
-                <input type="time" className="form-control" value={form.visitTime} onChange={(e) => update('visitTime', e.target.value)} required />
+                <label className="form-label">
+                  Visit Time <span className="text-muted fw-normal">(7:00 AM - 5:00 PM)</span>
+                </label>
+                <select className="form-select" value={form.visitTime} onChange={(e) => update('visitTime', e.target.value)} required>
+                  <option value="" disabled>
+                    Choose a time
+                  </option>
+                  {TIME_SLOTS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="col-md-6 mb-3">
-                <label className="form-label">Number of Visitors</label>
+                <label className="form-label">
+                  Number of Visitors <span className="text-muted fw-normal">(max {MAX_VISITORS})</span>
+                </label>
                 <input
                   type="number"
                   className="form-control"
                   min={1}
+                  max={MAX_VISITORS}
                   value={form.numberOfVisitors}
-                  onChange={(e) => update('numberOfVisitors', e.target.value)}
+                  onKeyDown={blockNonDigitKeys}
+                  onChange={(e) => update('numberOfVisitors', e.target.value === '' ? '' : String(Math.min(MAX_VISITORS, Math.max(1, parseInt(e.target.value, 10) || 1))))}
                   required
                 />
               </div>

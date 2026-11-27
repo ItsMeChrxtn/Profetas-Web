@@ -16,7 +16,7 @@ const RESTOCK_RANK = {
 const PER_PAGE = 15;
 
 export async function listAdminProducts(req, res) {
-  const { q, category, status } = req.query;
+  const { q, category, status, stockStatus } = req.query;
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
 
   const filter = {};
@@ -24,6 +24,9 @@ export async function listAdminProducts(req, res) {
   if (category && PRODUCT_CATEGORY_VALUES.includes(category)) filter.category = category;
   // Archived products live in the Product Archive, not in this list.
   filter.status = status && ['Active', 'Inactive'].includes(status) ? status : { $ne: 'Archived' };
+  if (stockStatus === 'out') filter.stockQty = { $lte: 0 };
+  else if (stockStatus === 'low') filter.$expr = { $and: [{ $gt: ['$stockQty', 0] }, { $lte: ['$stockQty', '$lowStockThreshold'] }] };
+  else if (stockStatus === 'in') filter.$expr = { $gt: ['$stockQty', '$lowStockThreshold'] };
 
   const [items, total] = await Promise.all([
     Product.aggregate([
@@ -177,7 +180,7 @@ export async function restoreProduct(req, res) {
 
   product.price = price;
   product.stockQty = stockQty;
-  product.status = req.body.status === 'Inactive' ? 'Inactive' : 'Active';
+  product.status = 'Active';
   product.archivedAt = null;
   await product.save();
   res.json({ success: true, message: `"${product.name}" restored to Products.` });

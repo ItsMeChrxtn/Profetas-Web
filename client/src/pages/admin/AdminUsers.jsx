@@ -10,8 +10,8 @@ import { showToast } from '../../utils/toast.js';
 const ROLE_LABELS = { superadmin: 'Super Admin', admin: 'Admin' };
 
 const ROLE_ACCESS = [
-  { role: 'Super Admin', access: 'Everything: adding, editing and archiving products, stock changes, Reports, Product Archive, Wholesaler Applications, managing customers, and User Management.' },
-  { role: 'Admin', access: 'Dashboard, Orders, Products and Inventory (view only), Customers (view only), Payments, Delivery Booking, Farm Visits, Education Posts, and Settings including the Landing Page.' },
+  { role: 'Super Admin', access: 'Everything: adding, editing and archiving products and their stock, Reports, Product Archive, Wholesaler Applications, managing customers, and User Management.' },
+  { role: 'Admin', access: 'Dashboard, Orders, Products (view only), Customers (view only), Payments, Delivery Booking, Farm Visits, Education Posts, and Settings including the Landing Page.' },
 ];
 
 function AddStaffModal({ onClose, onSaved }) {

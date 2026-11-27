@@ -7,12 +7,13 @@ import { formatDate } from '../../utils/dateFormat.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
+import { blockNonDigitKeys } from '../../utils/digits.js';
 
 const CATEGORIES = ['Fresh', 'Value-Added', 'Farm Inputs'];
 
 /** Restoring asks the admin to re-check price and stock, which may be stale after archiving. */
 function RestoreModal({ product, onClose, onRestored }) {
-  const [form, setForm] = useState({ price: product.price, stockQty: product.stockQty, status: 'Active' });
+  const [form, setForm] = useState({ price: product.price, stockQty: product.stockQty });
   const [saving, setSaving] = useState(false);
   const update = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -56,15 +57,8 @@ function RestoreModal({ product, onClose, onRestored }) {
           </div>
           <div className="form-group">
             <label>Stock Quantity</label>
-            <input type="number" min="0" className="form-control" required value={form.stockQty} onChange={update('stockQty')} />
+            <input type="number" min="0" className="form-control" required value={form.stockQty} onKeyDown={blockNonDigitKeys} onChange={update('stockQty')} />
           </div>
-        </div>
-        <div className="form-group">
-          <label>Restore as</label>
-          <select className="form-control" value={form.status} onChange={update('status')}>
-            <option value="Active">Active - visible in the shop</option>
-            <option value="Inactive">Inactive - hidden until you activate it</option>
-          </select>
         </div>
       </form>
     </Modal>

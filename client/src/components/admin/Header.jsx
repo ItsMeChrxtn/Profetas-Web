@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { ADMIN_NAV_ITEMS } from './navItems.js';
 import { formatDateTime } from '../../utils/dateFormat.js';
+import { confirmLogout } from '../../utils/confirm.js';
 
 const emptyNotifications = { notifications: [], unreadCount: 0, markAllRead: () => {} };
 
@@ -98,7 +99,7 @@ export function TopHeader({ onToggleSidebar, notifications = emptyNotifications 
                 <i className="fas fa-cog" /> Settings
               </Link>
               <hr />
-              <button type="button" className="text-danger" onClick={() => { setProfileOpen(false); logout(); }}>
+              <button type="button" className="text-danger" onClick={() => { setProfileOpen(false); confirmLogout(logout); }}>
                 <i className="fas fa-sign-out-alt" /> Logout
               </button>
             </div>

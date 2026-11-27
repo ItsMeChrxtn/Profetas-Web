@@ -2,6 +2,7 @@ import { Order, User, DELIVERY_METHOD_VALUES } from '../models/index.js';
 import { placeOrder } from '../services/orders.service.js';
 import { quoteLalamoveFee, totalWeightKg } from '../services/delivery.service.js';
 import { isWholesalerUser } from '../services/pricing.service.js';
+import { normalizeGcashReference } from '../utils/validators.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../middleware/upload.js';
 import { HttpError } from '../utils/httpError.js';
 import { appEvents } from '../utils/eventBus.js';
@@ -43,11 +44,11 @@ function validateAndBuildDeliveryDetails(body) {
 export async function createOrder(req, res, next) {
   let receiptPublicPath = null;
   try {
-    const { referenceNumber } = req.body;
+    const referenceNumber = normalizeGcashReference(req.body.referenceNumber);
     if (req.file) {
       receiptPublicPath = uploadedFilePublicPath('receipts', req.file);
     }
-    if (!referenceNumber?.trim() && !receiptPublicPath) {
+    if (!referenceNumber && !receiptPublicPath) {
       throw new HttpError(400, 'Please provide a GCash reference number or upload your receipt.');
     }
 
@@ -97,7 +98,7 @@ export async function createOrder(req, res, next) {
       lalamove,
       isWholesaler: await isWholesalerUser(req.user.id),
       deliveryDetails,
-      payment: { referenceNumber: referenceNumber?.trim() || null, receiptImage: receiptPublicPath },
+      payment: { referenceNumber, receiptImage: receiptPublicPath },
     });
 
     appEvents.emit('order:created', {
@@ -124,40 +125,6 @@ export async function getDeliveryQuote(req, res) {
     weightKg: await totalWeightKg(Array.isArray(req.body.items) ? req.body.items : []),
   });
   res.json({ success: true, ...quote });
-}
-
-/**
- * Guest order lookup. Order numbers are sequential, so the email on the
- * account is required too - otherwise anyone could walk #1, #2, #3... and see
- * every order. Only status-level details are returned (no address or receipt).
- */
-export async function trackOrderPublic(req, res) {
-  const orderNumber = parseInt(String(req.query.orderNumber || '').replace(/\D/g, ''), 10);
-  const email = req.query.email?.trim().toLowerCase();
-  const notFound = 'No order matches that order number and email.';
-
-  if (!orderNumber || !email) {
-    throw new HttpError(400, 'Please enter your order number and the email you ordered with.');
-  }
-
-  const order = await Order.findOne({ orderNumber }).populate('customer', 'email');
-  if (!order || order.customer?.email !== email) throw new HttpError(404, notFound);
-
-  res.json({
-    success: true,
-    order: {
-      orderNumber: order.orderNumber,
-      orderDate: order.orderDate,
-      status: order.status,
-      deliveryMethod: order.deliveryMethod,
-      pickupDate: order.pickupDate,
-      pickupTime: order.pickupTime,
-      items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
-      totalAmount: order.totalAmount,
-      paymentStatus: order.payment?.status,
-      lalamoveShareLink: order.lalamoveShareLink,
-    },
-  });
 }
 
 export async function getMyOrders(req, res) {

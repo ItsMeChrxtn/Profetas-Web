@@ -73,7 +73,7 @@ export default function Faq() {
           order. If it changed, we'll show you the new fee so you can review your total before confirming.
         </FaqItem>
         <FaqItem question="How do I track my delivery?">
-          Go to <Link to="/track-order">Track Order</Link> and enter your order number and email &mdash; no login needed. Once a rider
+          Log in and go to <Link to="/track-order">Track Order</Link> to see all your orders and their status. Once a rider
           is booked, you'll also see a link to track the rider live.
         </FaqItem>
       </div>
@@ -85,6 +85,10 @@ export default function Faq() {
         <FaqItem question="How do I pay?">
           We accept <strong>GCash</strong>. Send your payment to {settings.gcashNumber ? <strong>{settings.gcashNumber}</strong> : 'our GCash number'}{' '}
           shown at checkout, then enter your reference number and/or upload your receipt. Our team will verify it manually.
+        </FaqItem>
+        <FaqItem question="Can I get an invoice with VAT?">
+          Yes. On <Link to="/track-order">Track Order</Link>, tap <strong>Invoice</strong> on any order to download a PDF invoice. Our prices
+          are VAT-inclusive, so the invoice shows the <strong>VATable sales</strong> and the <strong>12% VAT</strong> included in your total.
         </FaqItem>
         <FaqItem question="Do I need an account to order?">
           Yes. Please <Link to="/register">sign up</Link> or <Link to="/login">log in</Link> to view the full catalog, add items to your

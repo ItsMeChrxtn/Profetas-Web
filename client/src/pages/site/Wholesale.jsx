@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
 import { formatDate } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
+import { digitsOnly } from '../../utils/digits.js';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 function FileField({ label, hint, required, onChange }) {
   return (
@@ -22,7 +24,7 @@ function FileField({ label, hint, required, onChange }) {
 function ApplicationForm({ user, onBack, onSubmitted }) {
   const [form, setForm] = useState({
     fullName: `${user.firstName} ${user.lastName}`,
-    contactNumber: user.contactNumber || '',
+    contactNumber: digitsOnly(user.contactNumber, 11),
     email: user.email,
     businessName: '',
     businessAddress: '',
@@ -70,7 +72,15 @@ function ApplicationForm({ user, onBack, onSubmitted }) {
         </div>
         <div className="col-md-6">
           <label className="form-label">Contact Number</label>
-          <input className="form-control" placeholder="09xx xxx xxxx" value={form.contactNumber} onChange={update('contactNumber')} required />
+          <input
+            className="form-control"
+            inputMode="numeric"
+            maxLength={11}
+            placeholder="09XXXXXXXXX"
+            value={form.contactNumber}
+            onChange={(e) => setForm((prev) => ({ ...prev, contactNumber: digitsOnly(e.target.value, 11) }))}
+            required
+          />
         </div>
         <div className="col-12">
           <label className="form-label">Email Address</label>
@@ -162,7 +172,7 @@ export default function Wholesale() {
   }
   useEffect(load, []);
 
-  if (!state) return null;
+  if (!state) return <SkeletonPage />;
 
   const { application, isWholesaler, businessName } = state;
   let body;

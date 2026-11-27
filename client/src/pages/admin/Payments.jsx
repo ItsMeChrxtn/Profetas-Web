@@ -7,8 +7,9 @@ import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal.jsx'
 import { peso } from '../../utils/peso.js';
 import { formatDateTime, orderNumberLabel } from '../../utils/dateFormat.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
-import { confirmAction } from '../../utils/confirm.js';
+import { confirmAction, promptReason } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 const FILTERS = [
   { value: 'Pending', label: 'Pending Verification' },
@@ -40,6 +41,7 @@ function ReceiptModal({ order, onClose }) {
 }
 
 export default function Payments() {
+  const [loaded, setLoaded] = useState(false);
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [page, setPage] = useState(1);
   const [orders, setOrders] = useState([]);
@@ -50,6 +52,7 @@ export default function Payments() {
 
   function reload() {
     adminPaymentsApi.list({ status: statusFilter, page }).then((data) => {
+      setLoaded(true);
       setOrders(data.orders);
       setPendingCount(data.pendingCount);
       setPagination(data.pagination);
@@ -59,13 +62,19 @@ export default function Payments() {
   useEffect(reload, [statusFilter, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleReview(order, action) {
-    const confirmed = await confirmAction(
-      action === 'verify' ? 'Verify this payment?' : 'Reject this payment?',
-      action === 'verify' ? { icon: 'question', confirmButtonText: 'Yes, verify' } : { confirmButtonText: 'Yes, reject' }
-    );
-    if (!confirmed) return;
+    let reason;
+    if (action === 'verify') {
+      const confirmed = await confirmAction('Verify this payment?', { icon: 'question', confirmButtonText: 'Yes, verify' });
+      if (!confirmed) return;
+    } else {
+      reason = await promptReason('Reject this payment?', {
+        text: 'Tell the customer why, e.g. the reference number does not match or the amount is short.',
+        confirmButtonText: 'Yes, reject',
+      });
+      if (!reason) return;
+    }
     try {
-      await adminPaymentsApi.review(order._id, action);
+      await adminPaymentsApi.review(order._id, action, reason);
       showToast('success', action === 'verify' ? 'Payment verified and order confirmed.' : 'Payment marked as rejected.');
       reload();
     } catch (err) {
@@ -102,6 +111,9 @@ export default function Payments() {
           </div>
         </div>
 
+        {!loaded ? (
+          <SkeletonTable rows={6} cols={8} />
+        ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -169,6 +181,7 @@ export default function Payments() {
             </tbody>
           </table>
         </div>
+        )}
 
         {pagination.totalPages > 1 && (
           <div className="pagination" style={{ display: 'flex', gap: 5, justifyContent: 'flex-end', marginTop: 20 }}>

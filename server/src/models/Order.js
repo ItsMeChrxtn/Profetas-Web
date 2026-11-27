@@ -62,6 +62,7 @@ const orderSchema = new mongoose.Schema(
     // 'Rider' = customer pays the delivery fee in cash to the rider, so GCash covers items only.
     deliveryFeePayment: { type: String, enum: ['GCash', 'Rider'], default: 'GCash' },
     isWholesaleOrder: { type: Boolean, default: false },
+    cancelReason: { type: String, default: null },
     payment: { type: paymentSchema, required: true },
   },
   { timestamps: { createdAt: false, updatedAt: 'updatedAt' } }

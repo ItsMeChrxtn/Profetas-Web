@@ -4,13 +4,14 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { authApi } from '../../api/auth.js';
 import { showToast } from '../../utils/toast.js';
 import { PasswordInput, PasswordLengthHint, PasswordMatchHint } from '../../components/site/PasswordInput.jsx';
+import { digitsOnly } from '../../utils/digits.js';
 
 function ProfileForm({ user, onSaved }) {
   const { updateProfile } = useAuth();
   const [form, setForm] = useState({
     firstName: user.firstName,
     lastName: user.lastName,
-    contactNumber: user.contactNumber || '',
+    contactNumber: digitsOnly(user.contactNumber, 11),
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -47,7 +48,14 @@ function ProfileForm({ user, onSaved }) {
       </div>
       <div className="mb-3">
         <label className="form-label">Contact Number</label>
-        <input className="form-control" placeholder="09xx xxx xxxx" value={form.contactNumber} onChange={update('contactNumber')} />
+        <input
+          className="form-control"
+          inputMode="numeric"
+          maxLength={11}
+          placeholder="09XXXXXXXXX"
+          value={form.contactNumber}
+          onChange={(e) => setForm((prev) => ({ ...prev, contactNumber: digitsOnly(e.target.value, 11) }))}
+        />
       </div>
       <div className="d-flex gap-2">
         <button type="submit" className="btn btn-farm-primary" disabled={saving}>

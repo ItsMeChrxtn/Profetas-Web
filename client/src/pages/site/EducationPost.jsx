@@ -4,6 +4,7 @@ import { educationApi } from '../../api/education.js';
 import { formatDate } from '../../utils/dateFormat.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { RichText } from '../../components/RichText.jsx';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 export default function EducationPost() {
   const { id } = useParams();
@@ -30,7 +31,7 @@ export default function EducationPost() {
     );
   }
 
-  if (!post) return null;
+  if (!post) return <SkeletonPage />;
 
   return (
     <div className="container" style={{ maxWidth: 780, paddingTop: 30, paddingBottom: 60 }}>

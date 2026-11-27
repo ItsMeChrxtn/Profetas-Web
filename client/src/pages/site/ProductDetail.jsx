@@ -9,6 +9,7 @@ import { QuantityStepper } from '../../components/site/QuantityStepper.jsx';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
 import { showToast } from '../../utils/toast.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -49,7 +50,7 @@ export default function ProductDetail() {
     );
   }
 
-  if (!product) return null;
+  if (!product) return <SkeletonPage />;
 
   const status = stockStatus(product.stockQty, product.lowStockThreshold);
   const inStock = status !== 'Out of Stock';

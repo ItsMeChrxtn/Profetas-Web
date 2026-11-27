@@ -6,6 +6,7 @@ import { peso } from '../../utils/peso.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { QuantityStepper } from '../../components/site/QuantityStepper.jsx';
 import { cartKey } from '../../utils/cartKey.js';
+import { SkeletonPage } from '../../components/Skeleton.jsx';
 
 const keyOf = (item) => cartKey(item.productId, item.isWholesalePrice);
 
@@ -90,7 +91,7 @@ export default function Cart() {
     });
   }, [items, asItemsArray, keepOnly]);
 
-  if (loading) return null;
+  if (loading) return <SkeletonPage />;
 
   const selectedItems = resolved.filter((item) => !deselected.has(keyOf(item)));
   const selectedSubtotal = Math.round(selectedItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;

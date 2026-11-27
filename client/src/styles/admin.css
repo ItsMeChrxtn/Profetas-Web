@@ -1047,3 +1047,79 @@ tr:last-child td {
     .sidebar-footer { padding: 10px 20px; }
     .sidebar-bottom-info { display: none; }
 }
+
+/* Charts: a little smaller overall, and smaller again on phones. */
+.chart-box.chart-sm { height: 220px; }
+.chart-box.chart-md { height: 260px; }
+.report-empty { height: 260px; }
+@media (max-width: 576px) {
+    .chart-box.chart-sm { height: 180px; }
+    .chart-box.chart-md { height: 210px; }
+    .report-empty { height: 200px; }
+    .card { padding: 16px; }
+    table th, table td { font-size: 12px; padding: 10px 8px; }
+    .report-tabs { overflow-x: auto; flex-wrap: nowrap; }
+    .report-tab { flex-shrink: 0; padding: 8px 12px; font-size: 13px; }
+    .modal-container { padding: 20px; }
+}
+
+/* Order status: horizontal stepper (forward only). */
+.status-stepper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin: 10px 0 15px;
+    overflow-x: auto;
+}
+.status-step {
+    flex: 1;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: default;
+}
+.status-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: calc(50% + 20px);
+    right: calc(-50% + 20px);
+    height: 3px;
+    background: var(--border-color);
+}
+.status-step.done:not(:last-child)::after { background: var(--primary-green); }
+.status-step-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    background: #F3F4F6;
+    color: var(--text-muted);
+    border: 2px solid var(--border-color);
+}
+.status-step.done .status-step-dot { background: var(--primary-green); border-color: var(--primary-green); color: #fff; }
+.status-step.next { cursor: pointer; }
+.status-step.next .status-step-dot { border-color: var(--primary-green); color: var(--primary-green); background: #fff; box-shadow: 0 0 0 4px rgba(123,30,43,0.12); }
+.status-step.next:hover .status-step-dot { background: #FBF4F5; }
+.status-step.next .status-step-label { color: var(--primary-green); font-weight: 700; }
+.status-step-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; }
+.status-step.done .status-step-label { color: var(--text-main); }
+.status-stepper.is-cancelled { opacity: 0.55; }
+
+/* Reports: Weekly / Monthly / Yearly and the date range sit level with the summary boxes. */
+.report-summary-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 30px; flex-wrap: wrap; }
+.report-summary-row .stats-grid { flex: 1 1 520px; margin-bottom: 0; }
+.report-summary-row .report-range { flex: 0 1 300px; margin: 0; padding: 16px; align-items: stretch; justify-content: center; }
+.report-summary-row .report-range .status-filter-row { justify-content: space-between; }
+.report-summary-row .report-dates .form-control { width: 100%; }

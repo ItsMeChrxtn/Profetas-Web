@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema(
     accountStatus: { type: String, enum: ['Active', 'Suspended'], default: 'Active' },
     suspensionReason: { type: String, default: null },
     lastLoginAt: { type: Date, default: null },
+    // Changes on every login; a session token carrying an older id is signed out (one device at a time).
+    sessionId: { type: String, default: null },
     // Suspensions, reinstatements and warnings, newest last.
     accountHistory: {
       type: [

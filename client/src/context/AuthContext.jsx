@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import Swal from 'sweetalert2';
 import { authApi } from '../api/auth.js';
 
 const AuthContext = createContext(null);
@@ -13,6 +14,19 @@ export function AuthProvider({ children }) {
       .then((data) => setUser(data.user))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+  }, []);
+
+  // The server ended this session (e.g. the account logged in on another device).
+  const userRef = useRef(null);
+  userRef.current = user;
+  useEffect(() => {
+    function onEnded(e) {
+      if (!userRef.current) return;
+      setUser(null);
+      Swal.fire({ icon: 'info', title: 'You were logged out', text: e.detail, confirmButtonColor: '#7B1E2B' });
+    }
+    window.addEventListener('auth:ended', onEnded);
+    return () => window.removeEventListener('auth:ended', onEnded);
   }, []);
 
   const login = useCallback(async (email, password) => {

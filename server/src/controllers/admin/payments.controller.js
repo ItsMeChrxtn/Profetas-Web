@@ -54,6 +54,7 @@ export async function listPayments(req, res) {
 export async function reviewPayment(req, res) {
   const { action, adminNote } = req.body;
   if (!['verify', 'reject'].includes(action)) throw new HttpError(400, 'Invalid action.');
+  if (action === 'reject' && !adminNote?.trim()) throw new HttpError(400, 'Please give a reason for rejecting this payment.');
 
   const order = await Order.findById(req.params.id);
   if (!order) throw new HttpError(404, 'Order not found.');

@@ -4,7 +4,6 @@ export const ADMIN_NAV_ITEMS = [
   { to: '/admin/orders', label: 'Orders', icon: 'fa-shopping-bag' },
   { to: '/admin/products', label: 'Products', icon: 'fa-box' },
   { to: '/admin/product-archive', label: 'Product Archive', icon: 'fa-archive', superOnly: true },
-  { to: '/admin/inventory', label: 'Inventory', icon: 'fa-warehouse' },
   { to: '/admin/customers', label: 'Customers', icon: 'fa-users' },
   { to: '/admin/reports', label: 'Reports', icon: 'fa-chart-bar', superOnly: true },
   { to: '/admin/payments', label: 'Payments', icon: 'fa-credit-card' },

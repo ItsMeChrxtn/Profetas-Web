@@ -1,4 +1,6 @@
+import crypto from 'node:crypto';
 import validator from 'validator';
+import { normalizeContactNumber } from '../utils/validators.js';
 import { User, PendingRegistration, PasswordReset } from '../models/index.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { signToken } from '../utils/jwt.js';
@@ -47,8 +49,17 @@ function otpEmailHtml(firstName, otp, { heading = 'Verify your email', intro = '
 
 /** Step 1 of signup: validate + stash the (hashed) registration, email an OTP. No User row yet. */
 export async function register(req, res) {
-  const { firstName, lastName, email, contactNumber, password, confirmPassword } = req.body;
+  const { firstName, lastName, email, contactNumber, password, confirmPassword, acceptTerms } = req.body;
   const errors = [];
+
+  if (acceptTerms !== true && acceptTerms !== 'true') {
+    errors.push('Please read and accept the Terms and Conditions.');
+  }
+  try {
+    normalizeContactNumber(contactNumber);
+  } catch (err) {
+    errors.push(err.message);
+  }
 
   if (!firstName?.trim()) errors.push('First name is required.');
   if (!lastName?.trim()) errors.push('Last name is required.');
@@ -139,6 +150,7 @@ export async function verifyRegistrationOtp(req, res) {
     passwordHash: pending.passwordHash,
     contactNumber: pending.contactNumber,
     role: 'customer',
+    sessionId: crypto.randomUUID(),
   });
 
   await PendingRegistration.deleteOne({ _id: pending._id });
@@ -194,7 +206,9 @@ export async function login(req, res) {
     return res.status(403).json({ success: false, message: suspendedMessage(user) });
   }
 
+  // A fresh session id signs out any other device using this account.
   user.lastLoginAt = new Date();
+  user.sessionId = crypto.randomUUID();
   await user.save();
 
   setAuthCookie(res, signToken(user));
@@ -291,6 +305,7 @@ export async function resetPassword(req, res) {
   if (!user) throw new HttpError(400, 'That code has expired. Please request a new one.');
 
   user.passwordHash = await hashPassword(password);
+  user.sessionId = crypto.randomUUID();
   await user.save();
   await PasswordReset.deleteOne({ _id: reset._id });
 
@@ -309,7 +324,7 @@ export async function updateProfile(req, res) {
 
   user.firstName = firstName.trim();
   user.lastName = lastName.trim();
-  user.contactNumber = contactNumber?.trim() || undefined;
+  user.contactNumber = normalizeContactNumber(contactNumber, { required: false });
   await user.save();
 
   // The session token carries the first name, so reissue it.

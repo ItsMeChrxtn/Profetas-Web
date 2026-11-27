@@ -1,6 +1,11 @@
 import { FarmVisit } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
 import { appEvents } from '../utils/eventBus.js';
+import { normalizeContactNumber } from '../utils/validators.js';
+
+const OPENING_TIME = '07:00';
+const CLOSING_TIME = '17:00';
+const MAX_VISITORS = 100;
 
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
@@ -12,6 +17,13 @@ export async function createFarmVisit(req, res) {
   if (!name?.trim() || !contactNumber?.trim() || !visitDate || !visitTime) {
     throw new HttpError(400, 'Please fill in all required fields.');
   }
+  if (visitTime < OPENING_TIME || visitTime > CLOSING_TIME) {
+    throw new HttpError(400, 'Farm visits are from 7:00 AM to 5:00 PM only.');
+  }
+  const visitors = parseInt(numberOfVisitors, 10);
+  if (!(visitors >= 1 && visitors <= MAX_VISITORS)) {
+    throw new HttpError(400, `Number of visitors must be from 1 to ${MAX_VISITORS}.`);
+  }
   if (visitDate < todayDateString()) {
     throw new HttpError(400, 'Visit date cannot be in the past.');
   }
@@ -20,12 +32,12 @@ export async function createFarmVisit(req, res) {
   }
 
   const visit = await FarmVisit.create({
-    customer: req.user?.id || null,
+    customer: req.user.id,
     name: name.trim(),
-    contactNumber: contactNumber.trim(),
+    contactNumber: normalizeContactNumber(contactNumber),
     visitDate,
     visitTime,
-    numberOfVisitors: Math.max(1, parseInt(numberOfVisitors, 10) || 1),
+    numberOfVisitors: visitors,
     notes: notes?.trim() || null,
   });
 

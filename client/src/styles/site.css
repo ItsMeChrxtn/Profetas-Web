@@ -760,3 +760,46 @@ label.form-label { font-weight: 600; font-size: 13.5px; color: var(--text-main);
 /* Logout uses the same red as the admin panel's logout buttons. */
 .site-navbar .dropdown-item.text-danger { color: #C62828 !important; font-weight: 600; }
 .site-navbar .dropdown-item.text-danger:hover { background: #FDECEC; }
+
+/* Chat bubble = Facebook Messenger (brand gradient). */
+.chat-widget-btn { background: linear-gradient(45deg, #0A7CFF, #A033FF 60%, #FF5280) !important; }
+.chat-widget-btn i { font-size: 26px; }
+
+/* Hero text stays readable on light photos. */
+.hero-section.has-images::before {
+    background: linear-gradient(90deg, rgba(40,8,14,0.88) 0%, rgba(40,8,14,0.72) 50%, rgba(40,8,14,0.35) 100%) !important;
+}
+.hero-content h1, .hero-content p { text-shadow: 0 2px 8px rgba(0,0,0,0.45); }
+.hero-content p { opacity: 1; }
+.hero-content .social-pill, .hero-content .btn-farm-outline { background: rgba(0,0,0,0.35) !important; border-color: rgba(255,255,255,0.7) !important; }
+
+/* ---------------------------------------------------------------- Terms and Conditions */
+.terms-check { display: flex; align-items: center; gap: 10px; }
+.terms-check .form-check-input { width: 18px; height: 18px; flex-shrink: 0; }
+.terms-check .form-check-input:checked { background-color: var(--primary-green); border-color: var(--primary-green); }
+.terms-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.terms-dialog {
+    background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 620px;
+    max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+}
+.terms-head, .terms-foot { display: flex; align-items: center; gap: 10px; padding: 16px 20px; flex-shrink: 0; }
+.terms-head { border-bottom: 1px solid var(--border-color); justify-content: space-between; }
+.terms-foot { border-top: 1px solid var(--border-color); }
+.terms-body { padding: 16px 20px; overflow-y: auto; }
+.terms-body ul { padding-left: 1.2em; }
+
+/* Product cards: slightly smaller, and compact on phones. */
+.product-img-wrap { height: 160px; }
+@media (max-width: 576px) {
+    .product-img-wrap { height: 120px; }
+    .product-card .product-body { padding: 10px; }
+    .product-card .product-name { font-size: 13px; }
+    .product-card .product-price { font-size: 14px; }
+    .section-title { font-size: 22px; }
+    .farm-card { padding: 18px; }
+    .about-section .section-title { font-size: 24px; }
+}

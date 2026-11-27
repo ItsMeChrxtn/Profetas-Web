@@ -9,10 +9,12 @@ import { formatDate, orderNumberLabel, todayDateString } from '../../utils/dateF
 import { toCsv, downloadCsv } from '../../utils/csv.js';
 import { downloadPdfTable } from '../../utils/pdf.js';
 import { showToast } from '../../utils/toast.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
 
 export default function Orders() {
+  const [loaded, setLoaded] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const status = searchParams.get('status') || '';
@@ -27,6 +29,7 @@ export default function Orders() {
 
   useEffect(() => {
     adminOrdersApi.list({ q, status, page, ...(method && { deliveryMethod: method }) }).then((data) => {
+      setLoaded(true);
       setItems(data.items);
       setPagination(data.pagination);
     });
@@ -144,6 +147,9 @@ export default function Orders() {
           </div>
         </div>
 
+        {!loaded ? (
+          <SkeletonTable rows={6} cols={7} />
+        ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -192,6 +198,7 @@ export default function Orders() {
             </tbody>
           </table>
         </div>
+        )}
 
         <div className="card-footer" style={{ marginTop: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>

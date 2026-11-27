@@ -2,6 +2,7 @@ import validator from 'validator';
 import { WholesalerApplication, User } from '../models/index.js';
 import { HttpError } from '../utils/httpError.js';
 import { appEvents } from '../utils/eventBus.js';
+import { normalizeContactNumber } from '../utils/validators.js';
 import { deleteUploadedFile, uploadedFilePublicPath } from '../middleware/upload.js';
 
 function uploadedPath(req, field) {
@@ -41,7 +42,7 @@ export async function submitApplication(req, res, next) {
     const application = await WholesalerApplication.create({
       user: req.user.id,
       fullName: fullName.trim(),
-      contactNumber: contactNumber.trim(),
+      contactNumber: normalizeContactNumber(contactNumber),
       email: email.trim(),
       businessName: businessName.trim(),
       businessAddress: businessAddress.trim(),

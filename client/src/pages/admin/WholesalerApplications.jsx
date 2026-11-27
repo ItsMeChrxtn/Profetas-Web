@@ -7,6 +7,7 @@ import { formatDate, formatDateTime } from '../../utils/dateFormat.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { confirmAction } from '../../utils/confirm.js';
 import { showToast } from '../../utils/toast.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 const STATUSES = ['Pending', 'Approved', 'Rejected'];
 
@@ -120,6 +121,7 @@ function ApplicationModal({ application, onClose, onReviewed }) {
 }
 
 export default function WholesalerApplications() {
+  const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState('Pending');
   const [applications, setApplications] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -127,6 +129,7 @@ export default function WholesalerApplications() {
 
   function load() {
     adminWholesalerApi.list(status ? { status } : {}).then((data) => {
+      setLoaded(true);
       setApplications(data.applications);
       setPendingCount(data.pendingCount);
     });
@@ -152,6 +155,9 @@ export default function WholesalerApplications() {
           </div>
         </div>
 
+        {!loaded ? (
+          <SkeletonTable rows={6} cols={6} />
+        ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -191,6 +197,7 @@ export default function WholesalerApplications() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {selected && (

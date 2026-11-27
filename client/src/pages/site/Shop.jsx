@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsApi } from '../../api/products.js';
 import { ProductCard } from '../../components/site/ProductCard.jsx';
+import { SkeletonCards } from '../../components/Skeleton.jsx';
 
 const CATEGORIES = ['Fresh', 'Value-Added', 'Farm Inputs'];
 
@@ -23,6 +24,7 @@ export default function Shop() {
 
   const [searchInput, setSearchInput] = useState(initialQ);
   const [items, setItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(true);
   const [pagination, setPagination] = useState({ totalPages: 1 });
   const [bestSellers, setBestSellers] = useState([]);
 
@@ -38,7 +40,9 @@ export default function Shop() {
   }, [initialQ]);
 
   useEffect(() => {
+    setLoadingItems(true);
     productsApi.list({ category, q: initialQ, page }).then((data) => {
+      setLoadingItems(false);
       setItems(data.items);
       setPagination(data.pagination);
     });
@@ -97,7 +101,9 @@ export default function Shop() {
         </section>
       )}
 
-      {items.length === 0 ? (
+      {loadingItems ? (
+        <SkeletonCards count={8} />
+      ) : items.length === 0 ? (
         <div className="farm-card text-center py-5">
           <i className="fas fa-seedling fa-2x mb-3" style={{ color: 'var(--text-muted)' }} />
           <p className="mb-0">No products found. Try a different search or category.</p>

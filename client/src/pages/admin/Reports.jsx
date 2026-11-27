@@ -9,6 +9,7 @@ import { exportReport } from '../../utils/adminExports.js';
 import { toCsv, downloadCsv } from '../../utils/csv.js';
 import { downloadPdfTable } from '../../utils/pdf.js';
 import { showToast } from '../../utils/toast.js';
+import { SkeletonTable } from '../../components/Skeleton.jsx';
 
 const PIE_COLORS = ['#7B1E2B', '#C97B2E', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444'];
 
@@ -33,10 +34,18 @@ function daysAgoString(days) {
 }
 
 const PRESETS = [
-  { key: 'weekly', label: 'Weekly', start: () => daysAgoString(6) },
-  { key: 'monthly', label: 'Monthly', start: () => daysAgoString(29) },
-  { key: 'yearly', label: 'Yearly', start: () => daysAgoString(364) },
+  { key: 'weekly', label: 'Weekly', start: () => daysAgoString(6), groupBy: 'day' },
+  { key: 'monthly', label: 'Monthly', start: () => daysAgoString(29), groupBy: 'week' },
+  { key: 'yearly', label: 'Yearly', start: () => daysAgoString(364), groupBy: 'month' },
 ];
+
+/** A custom date range picks its own grouping from its length. */
+function groupByForRange(startDate, endDate) {
+  const days = (new Date(endDate) - new Date(startDate)) / 86400000;
+  if (days <= 14) return 'day';
+  if (days <= 120) return 'week';
+  return 'month';
+}
 
 const fmt = (kind, value) => (kind === 'money' ? peso(value) : Number(value || 0).toLocaleString('en-PH'));
 // PDFs can't render the peso sign with jsPDF's built-in font.
@@ -60,13 +69,14 @@ export default function Reports() {
   const [exporting, setExporting] = useState(null);
 
   function load(range = { startDate, endDate }, type = category) {
-    adminReportsApi.get({ type, ...range }).then(setData);
+    const groupBy = PRESETS.find((p) => p.key === (range.preset ?? preset))?.groupBy || groupByForRange(range.startDate, range.endDate);
+    adminReportsApi.get({ type, startDate: range.startDate, endDate: range.endDate, groupBy }).then(setData);
   }
 
   useEffect(() => load(), [category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function applyPreset(p) {
-    const range = { startDate: p.start(), endDate: todayDateString() };
+    const range = { startDate: p.start(), endDate: todayDateString(), preset: p.key };
     setPreset(p.key);
     setStartDate(range.startDate);
     setEndDate(range.endDate);
@@ -103,9 +113,29 @@ export default function Reports() {
       <PageHeader
         title="Reports"
         subtitle="Analyze your sales performance and farm productivity."
-        actions={
-          !RANGELESS.includes(category) && (
-            <div className="report-range">
+      />
+
+      <div className="report-tabs">
+        {CATEGORIES.map((c) => (
+          <button key={c.key} type="button" className={`report-tab ${category === c.key ? 'active' : ''}`} onClick={() => setCategory(c.key)}>
+            <i className={`fas ${c.icon}`} />
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {!ready ? (
+        <SkeletonTable rows={4} cols={4} />
+      ) : (
+        <>
+          <div className="report-summary-row">
+            <div className="stats-grid">
+              {data.stats.map((s) => (
+                <StatCard key={s.label} label={s.label} value={fmt(s.kind, s.value)} trend={s.note} />
+              ))}
+            </div>
+          {!RANGELESS.includes(category) && (
+            <div className="report-range card">
               <div className="status-filter-row">
                 {PRESETS.map((p) => (
                   <button key={p.key} type="button" className={`status-filter-pill ${preset === p.key ? 'active' : ''}`} onClick={() => applyPreset(p)}>
@@ -133,32 +163,12 @@ export default function Reports() {
                     setPreset('');
                   }}
                 />
-                <button className="btn btn-primary" onClick={() => load()} title="Apply custom range">
+                <button className="btn btn-primary" onClick={() => load({ startDate, endDate, preset: '' })} title="Apply custom range">
                   <i className="fas fa-sync-alt" />
                 </button>
               </div>
             </div>
-          )
-        }
-      />
-
-      <div className="report-tabs">
-        {CATEGORIES.map((c) => (
-          <button key={c.key} type="button" className={`report-tab ${category === c.key ? 'active' : ''}`} onClick={() => setCategory(c.key)}>
-            <i className={`fas ${c.icon}`} />
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      {!ready ? (
-        <p style={{ color: 'var(--text-muted)' }}>Loading report...</p>
-      ) : (
-        <>
-          <div className="stats-grid">
-            {data.stats.map((s) => (
-              <StatCard key={s.label} label={s.label} value={fmt(s.kind, s.value)} trend={s.note} />
-            ))}
+          )}
           </div>
 
           {data.line && (
@@ -168,7 +178,7 @@ export default function Reports() {
                   <i className="fas fa-chart-line" /> {data.line.title}
                 </h3>
               </div>
-              <div style={{ height: 260 }}>
+              <div className="chart-box chart-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.line.data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
@@ -177,6 +187,28 @@ export default function Reports() {
                     <Tooltip formatter={(v) => fmt(data.line.kind, v)} />
                     <Line type="monotone" dataKey="value" stroke="#7B1E2B" strokeWidth={2} dot={false} />
                   </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {data.vatLine && (
+            <div className="card" style={{ marginBottom: 30 }}>
+              <div className="card-header">
+                <h3 className="card-title">
+                  <i className="fas fa-receipt" /> {data.vatLine.title}
+                </h3>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>12% VAT inside VAT-inclusive sales</span>
+              </div>
+              <div className="chart-box chart-sm">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.vatLine.data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                    <XAxis dataKey="name" fontSize={11} minTickGap={20} />
+                    <YAxis fontSize={11} width={60} />
+                    <Tooltip formatter={(v) => fmt('money', v)} />
+                    <Bar dataKey="value" name="VAT" fill="#C97B2E" radius={[4, 4, 0, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -192,7 +224,7 @@ export default function Reports() {
               {data.bar.data.length === 0 ? (
                 <EmptyChart icon="fa-chart-bar" text="No data for the selected period" />
               ) : (
-                <div style={{ height: 320 }}>
+                <div className="chart-box chart-md">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.bar.data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                       <XAxis dataKey="name" fontSize={11} interval={0} angle={data.bar.data.length > 4 ? -20 : 0} textAnchor={data.bar.data.length > 4 ? 'end' : 'middle'} height={data.bar.data.length > 4 ? 60 : 30} />
@@ -213,7 +245,7 @@ export default function Reports() {
               {data.pie.data.length === 0 ? (
                 <EmptyChart icon="fa-chart-pie" text="No data for the selected period" />
               ) : (
-                <div style={{ height: 320 }}>
+                <div className="chart-box chart-md">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={data.pie.data} dataKey="value" nameKey="name" outerRadius={90} label>

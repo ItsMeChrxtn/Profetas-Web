@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { educationApi } from '../../api/education.js';
 import { mediaUrl } from '../../utils/mediaUrl.js';
 import { plainText } from '../../components/RichText.jsx';
+import { SkeletonCards } from '../../components/Skeleton.jsx';
 
 const CATEGORIES = ['Tutorial', 'Tip', 'Recipe'];
 
@@ -14,7 +15,7 @@ function excerpt(content) {
 export default function Education() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState(null);
 
   useEffect(() => {
     educationApi.list(category ? { category } : {}).then((data) => setPosts(data.posts));
@@ -36,7 +37,9 @@ export default function Education() {
         ))}
       </div>
 
-      {posts.length === 0 ? (
+      {!posts ? (
+        <SkeletonCards count={3} className="col-md-4" />
+      ) : posts.length === 0 ? (
         <div className="farm-card text-center py-5">
           <i className="fas fa-book-open fa-2x mb-3" style={{ color: 'var(--text-muted)' }} />
           <p className="mb-0">No posts yet. Check back soon!</p>

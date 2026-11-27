@@ -6,6 +6,7 @@ import { Modal } from '../../components/admin/Modal.jsx';
 import { VisitCalendar } from '../../components/VisitCalendar.jsx';
 import { formatDate, formatTime, todayDateString } from '../../utils/dateFormat.js';
 import { showToast } from '../../utils/toast.js';
+import { confirmAction, promptReason } from '../../utils/confirm.js';
 
 const STATUSES = ['Pending', 'Confirmed', 'Cancelled'];
 
@@ -16,9 +17,20 @@ function ReviewVisitModal({ visit, visitsByDate, onClose, onUpdated }) {
   const otherConfirmed = sameDay.find((v) => v.status === 'Confirmed');
 
   async function setStatus(status) {
+    let reason;
+    if (status === 'Cancelled') {
+      reason = await promptReason('Cancel this farm visit?', {
+        text: `${visit.name} will see this reason.`,
+        confirmButtonText: 'Yes, cancel visit',
+      });
+      if (!reason) return;
+    } else {
+      const ok = await confirmAction(`Mark this visit as ${status}?`, { icon: 'question', confirmButtonText: `Yes, mark as ${status}` });
+      if (!ok) return;
+    }
     setSaving(status);
     try {
-      await adminFarmVisitsApi.updateStatus(visit._id, status);
+      await adminFarmVisitsApi.updateStatus(visit._id, status, reason);
       showToast('success', `Visit marked as ${status}.`);
       onUpdated();
     } catch (err) {
